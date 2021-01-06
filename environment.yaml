@@ -1,0 +1,9 @@
+name: bc_forecasting
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - pycodestyle=2.6.0=pyh9f0ad1d_0
+  - pylint=2.6.0=py39hde42818_1
+  - pytest=6.2.1=py39h6e9494a_0
+  - python=3.9.1=h1d169a7_2_cpython
