@@ -1,4 +1,5 @@
 extras
+models
 
 .vscode
 .pytest_cache

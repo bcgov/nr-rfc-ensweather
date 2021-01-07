@@ -1,11 +1,15 @@
+import datetime as dt
+from glob import glob
 import os
 import pathlib
 import shutil
+import subprocess
 import sys
 import threading
 import urllib.request as lib
-from datetime import datetime as dt, timedelta
-from glob import glob
+
+import dateutil.parser
+import requests
 
 base = '/'.join(__file__.split('/')[:-2])
 if base not in sys.path:
@@ -13,17 +17,17 @@ if base not in sys.path:
 if not base:
     base = './'
 
-from config import model_settings as ms, general_settings as gs, variable_settings as vs
-from common import helpers as h
+from common import dicts as d, params
+from process import helpers as h
 
 
 class myThread (threading.Thread):
 
-    def __init__(self, url, cr: dt):
+    def __init__(self, url, cr: dt.datetime):
         threading.Thread.__init__(self)
         self.lock = threading.Lock()
         self.url = url
-        self.local_dir = gs.DIR  # ./ on mac or abs on linux
+        self.local_dir = params.DIR  # ./ on mac or abs on linux
         self.cr = cr
 
     def run(self):
@@ -41,15 +45,15 @@ class myThread (threading.Thread):
 
 class Download():
 
-    def __init__(self, model, pre, fname, run: dt):
+    def __init__(self, model, pre, fname, run: dt.datetime):
         if 'file=' in fname:
-            self.fp = f'{gs.DIR}models/{model}/{run.strftime("%Y%m%d%H")}/{fname.replace("/", "_")[fname.find("file=")+5:fname.find("&")]}'
+            self.fp = f'{params.DIR}models/{model}/{run.strftime("%Y%m%d%H")}/{fname.replace("/", "_")[fname.find("file=")+5:fname.find("&")]}'
         else:
-            self.fp = f'{gs.DIR}models/{model}/{run.strftime("%Y%m%d%H")}/{fname.replace("/", "_")}'
+            self.fp = f'{params.DIR}models/{model}/{run.strftime("%Y%m%d%H")}/{fname.replace("/", "_")}'
         if model == 'met_fr' and 'acc' in fname:
             self.fp = self.fp.replace('acc_0-', '')
-        self.TIMEOUT = ms.models[model]['timeout']
-        self.NUM_RETRIES = gs.MAX_RETRIES
+        self.TIMEOUT = d.models[model]['timeout']
+        self.NUM_RETRIES = d.MAX_RETRIES
         self.download_model(model, pre, fname)
         self.fails = []
 
@@ -65,6 +69,8 @@ class Download():
                 with lib.urlopen(url, timeout=self.TIMEOUT) as \
                         response, open(self.fp, 'wb') as of:
                     shutil.copyfileobj(response, of)
+                if self.fp.endswith('bz2'):
+                    unzip_file(self.fp)
 
                 # if we get to the end, set download to max retries
                 print(f'DOWNLOADED: {self.fp}')
@@ -82,8 +88,16 @@ class Download():
                 if(downloaded == self.NUM_RETRIES):
                     os.remove(self.fp)
 
+        if m not in d.ENSAVG:
+            return None
 
-def make_dir(m, cr: dt):
+
+def unzip_file(fp):
+    cmd = f'bzip2 -d {fp}'
+    subprocess.call(cmd, shell=True)
+
+
+def make_dir(m, cr: dt.datetime):
     """
     Purpose:
         Make the data directory if it doesn't always exist.
@@ -94,13 +108,13 @@ def make_dir(m, cr: dt):
     Returns:
         None
     """
-    path = pathlib.Path(cr.strftime(f'{gs.DIR}models/{m}/%Y%m%d%H/'))
+    path = pathlib.Path(f'{params.DIR}models/{m}/{cr.strftime("%Y%m%d%H")}/')
     path.mkdir(parents=True, exist_ok=True)
 
 
 def check_downloads(model, runtime, url_list):
     expected = len(url_list)
-    base = runtime.strftime(f'{gs.DIR}models/{model}/%Y%m%d%H/*')
+    base = runtime.strftime(f'{params.DIR}models/{model}/%Y%m%d%H/*')
     files = glob(base)
     exist = 0
     for i in files:
@@ -112,50 +126,58 @@ def check_downloads(model, runtime, url_list):
     return True
 
 
-def main(m, date_tm, times=None):
-    org_tm = date_tm
-    MAX_DOWNLOADS = gs.MAX_DOWNLOADS
+def main(m, cr, times=None):
+
+    org_tm = cr
+    MAX_DOWNLOADS = d.MAX_DOWNLOADS
     # MAX_DOWNLOADS = 1
     url_list = []
 
-    make_dir(m, date_tm)
+    if m == 'sref':
+        cr = cr - dt.timedelta(hours=3)
+
+    make_dir(m, cr)
 
     # check to see if the model is available at this run time
-    if(date_tm.hour % ms.models[m]['cycle'] == 0):
+    if(cr.hour % d.models[m]['cycle'] == 0):
 
         # create list of all urls to download. We download all models in dict
         if times is None:
-            times = ms.models[m]['times']
+            times = d.models[m]['times']
 
         for t in times:
-            if t > gs.TM_STGS['max']:
+            if t > d.TM_STGS['max']:
                 break
-            if ms.models[m]['onegrib']:
-                res = h.fmt_orig_fn(date_tm, t, m)
+            if m == 'sref':
+                res = h.fmt_orig_fn(cr, t, m, var=[''])
+                url_list.append({'model': m, 'pre': res[0], 'fname': res[1]})
+                break
+            elif d.models[m]['onegrib']:
+                res = h.fmt_orig_fn(cr, t, m)
                 url_list.append({'model': m, 'pre': res[0], 'fname': res[1]})
             else:
-                for v in ms.metvars:
+                for v in d.metvars:
                     if '_std' in v:
                         continue
-                    if((t > 0) or (t == 0 and ms.metvars[v]['acc'] is False)):
+                    if((t > 0) or (t == 0 and d.metvars[v]['acc'] is False)):
 
                         # if there is only surface data
-                        if ms.metvars[v]['mod'][m] is not None:
-                            res = h.fmt_orig_fn(date_tm, t, m, var=ms.metvars[v]['mod'][m])
+                        if d.metvars[v]['mod'][m] is not None:
+                            res = h.fmt_orig_fn(cr, t, m, var=d.metvars[v]['mod'][m])
                             if(res is not None):
                                 url_list.append({'model': m, 'pre': res[0],
                                                 'fname': res[1]})
 
                         # if there is upper air data
-                        if ms.metvars[v]['ua'] and ms.metvars[v]['ua_mod'][m] is not None:
-                            if not ms.models[m]['one_ua']:
-                                for l in ms.metvars[v]['ua_mod'][m][2]:
-                                    res = h.fmt_orig_fn(date_tm, t, m, lev=l, var=ms.metvars[v]['ua_mod'][m])
+                        if d.metvars[v]['ua'] and d.metvars[v]['ua_mod'][m] is not None:
+                            if not d.models[m]['one_ua']:
+                                for l in d.metvars[v]['ua_mod'][m][2]:
+                                    res = h.fmt_orig_fn(cr, t, m, lev=l, var=d.metvars[v]['ua_mod'][m])
                                     if(res is not None):
                                         url_list.append({'model': m, 'pre': res[0],
                                                         'fname': res[1]})
                             else:
-                                res = h.fmt_orig_fn(date_tm, t, m, var=ms.metvars[v]['ua_mod'][m])
+                                res = h.fmt_orig_fn(cr, t, m, var=d.metvars[v]['ua_mod'][m])
                                 if(res is not None):
                                     url_list.append({'model': m, 'pre': res[0],
                                                     'fname': res[1]})
@@ -166,23 +188,24 @@ def main(m, date_tm, times=None):
             threads = []
             if(i + MAX_DOWNLOADS > len(url_list)):
                 increment = len(url_list) - i
-            threads = [myThread(url_list[j], date_tm)
+            threads = [myThread(url_list[j], cr)
                        for j in range(i, i + increment)]
             for i in threads:
                 i.start()
             for t in threads:
                 t.join()
             if idx == 0:
-                working = check_downloads(m, date_tm, url_list[:MAX_DOWNLOADS])
+                working = check_downloads(m, cr, url_list[:MAX_DOWNLOADS])
                 if not working:
                     break
 
-        date_tm = org_tm
+        cr = org_tm
         print(f'{m.upper()} download complete!')
 
     else:
-        print(f'The {m.upper()} is not available for cycle: {date_tm}')
+        print(f'The {m.upper()} is not available for cycle: {cr}')
 
 
 if __name__ == '__main__':
-    main('geps', gs.ARCHIVED_RUN)
+    for model in ['geps']:
+        main(model, params.archived_run)
