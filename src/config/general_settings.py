@@ -10,7 +10,7 @@ VERSION = 0.1
 TM_STGS = {
     'min': 0,
     'max': 384,
-    'space': 1,
+    'space': 3,
 }
 
 DM = {
