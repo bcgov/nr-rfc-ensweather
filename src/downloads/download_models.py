@@ -134,31 +134,16 @@ def main(m, date_tm, times=None):
                 res = h.fmt_orig_fn(date_tm, t, m)
                 url_list.append({'model': m, 'pre': res[0], 'fname': res[1]})
             else:
-                for v in ms.metvars:
+                for v in vs.metvars:
                     if '_std' in v:
                         continue
-                    if((t > 0) or (t == 0 and ms.metvars[v]['acc'] is False)):
+                    if((t > 0) or (t == 0 and vs.metvars[v]['acc'] is False)):
 
                         # if there is only surface data
-                        if ms.metvars[v]['mod'][m] is not None:
-                            res = h.fmt_orig_fn(date_tm, t, m, var=ms.metvars[v]['mod'][m])
-                            if(res is not None):
-                                url_list.append({'model': m, 'pre': res[0],
-                                                'fname': res[1]})
-
-                        # if there is upper air data
-                        if ms.metvars[v]['ua'] and ms.metvars[v]['ua_mod'][m] is not None:
-                            if not ms.models[m]['one_ua']:
-                                for l in ms.metvars[v]['ua_mod'][m][2]:
-                                    res = h.fmt_orig_fn(date_tm, t, m, lev=l, var=ms.metvars[v]['ua_mod'][m])
-                                    if(res is not None):
-                                        url_list.append({'model': m, 'pre': res[0],
-                                                        'fname': res[1]})
-                            else:
-                                res = h.fmt_orig_fn(date_tm, t, m, var=ms.metvars[v]['ua_mod'][m])
-                                if(res is not None):
-                                    url_list.append({'model': m, 'pre': res[0],
-                                                    'fname': res[1]})
+                        res = h.fmt_orig_fn(date_tm, t, m, var=vs.metvars[v]['mod'][m])
+                        if(res is not None):
+                            url_list.append({'model': m, 'pre': res[0],
+                                            'fname': res[1]})
 
         # start downloads in batches
         for idx, i in enumerate(range(0, len(url_list), MAX_DOWNLOADS)):
