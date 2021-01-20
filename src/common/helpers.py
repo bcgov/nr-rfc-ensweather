@@ -3,6 +3,7 @@ import os
 import sys
 
 import numpy as np
+import pandas as pd
 
 base = '/'.join(__file__.split('/')[:-2])
 if base not in sys.path:
@@ -13,6 +14,43 @@ if not base:
 from config import general_settings as gs, model_settings as ms, variable_settings as vs
 
 
+def free_range(start, stop, step):
+    """Range iterator allowing more types than just integers
+
+    Arguments:
+        start {None} -- Start of the range
+        stop {None} -- End of the range
+        step {None} -- Step each time through the loop
+
+    Raises:
+        ValueError: Error thrown if start + step == start
+
+    Yields:
+        None -- Value lazily found by the iterator
+    """
+    if start + step == start:
+        raise ValueError('Step must not be 0')
+    if start < stop:
+        if start + step < start:
+            yield start
+            return
+        while start < stop:
+            yield start
+            start += step
+    else:
+        if start + step > start:
+            yield start
+            return
+        while start > stop:
+            yield start
+            start += step
+
+
+def get_stations():
+    stations = pd.read_csv(f'{gs.DIR}resources/stations.csv')
+    return stations
+
+
 def fmt_orig_fn(rt, tm, m, lev=None, var=None):
     t02 = f'{tm:02}'
     t03 = f'{tm:03}'
@@ -21,38 +59,14 @@ def fmt_orig_fn(rt, tm, m, lev=None, var=None):
         'forecast_hour_three': t03,
         'forecast_hour_two': t02,
         'forecast_hour': tm,
-        'var_upper': var[0].upper() if var is not None else '',
+        'grib_name': var[0] if var is not None else '',
     }
-    if 'nomads' not in ms.models[m]['url']:
-        if var is not None:
-            if lev is not None and m not in {'met_fr'}:
-                kwargs['level'] = lev
-            else:
-                kwargs['level'] = ''
-            kwargs['var'] = var[0]
-            return (rt.strftime(ms.models[m]['url'].format(**kwargs)),
-                    rt.strftime(ms.models[m]['fn'].format(**kwargs)))
-        else:
-            return None
-    else:
-        return fmt_ncep_fn(kwargs, m, rt)
+    if m == 'geps':
+        return geps_format_function(kwargs, rt)
 
 
-def fmt_ncep_fn(kwargs, m, rt):
-    var_s = ''
-    levs = ''
-
-    for v in vs.metvars:
-
-        # surface data exists
-        var_s = f'{var_s}&var_{vs.metvars[v]["mod"][m][1]}=on'
-        if vs.metvars[v]['mod'][m][2].replace(' ', '_') not in levs:
-            levs = f'{levs}&lev_{vs.metvars[v]["mod"][m][2].replace(" ", "_")}=on'
-
-    bbox = f"&leftlon={gs.DM['lon0']}&rightlon={gs.DM['lon1']}&toplat={gs.DM['lat1']}&bottomlat={gs.DM['lat0']}"
-    kwargs['var_box'] = var_s + bbox
-    kwargs['level_var_box'] = levs + var_s + bbox
-    return (rt.strftime(ms.models[m]['url']), rt.strftime(ms.models[m]['fn'].format(**kwargs)))
+def geps_format_function(kwargs, rt):
+    return (rt.strftime(ms.models['geps']['url'].format(**kwargs)), rt.strftime(ms.models['geps']['fn'].format(**kwargs)))
 
 
 def fmt_regrid_fn(rt, tm, m):
