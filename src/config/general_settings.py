@@ -1,16 +1,17 @@
 from datetime import datetime as dt
 # POSSIBLE USER SETTINGS
-MAX_HOURS = 10
-
+MAX_HOURS = 12
 
 
 # NON USER SETTINGS
 VERSION = 0.1
 
+BIAS_DAYS = 15
+
 TM_STGS = {
-    'min': 0,
+    'min': 6,
     'max': 384,
-    'space': 3,
+    'space': 6,
 }
 
 DM = {
@@ -21,7 +22,8 @@ DM = {
 }
 
 DIR = '/Users/paulpries/Documents/bc_forecasting/'
-ARCHIVED_RUN = dt(2021, 1, 7, 0)
+ARCHIVED_RUN = dt(2021, 1, 19, 0)
+WGRIB2 = '/opt/local/bin/wgrib2'
 
 MAX_RETRIES = 3
 MAX_DOWNLOADS = 10

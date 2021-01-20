@@ -10,18 +10,16 @@ from config.general_settings import ALL_TIMES
 
 models = {
     'geps': {
-        'url': 'https://nomads.ncep.noaa.gov/cgi-bin/filter_cmcens.pl?',
-        'fn': 'file=cmc_geavg.t%Hz.pgrb2a.0p50.f{forecast_hour_three}{level_var_box}&dir=%%2Fcmce.%Y%m%d%%2F%H%%2Fpgrb2ap5',
+        # 'url': 'https://nomads.ncep.noaa.gov/cgi-bin/filter_cmcens.pl?',
+        # 'fn': 'file=cmc_geavg.t%Hz.pgrb2a.0p50.f{forecast_hour_three}{level_var_box}&dir=%%2Fcmce.%Y%m%d%%2F%H%%2Fpgrb2ap5',
+        'url': 'https://dd.weather.gc.ca/ensemble/geps/grib2/raw/%H/{forecast_hour_three}/',
+        'fn': 'CMC_geps-raw_{grib_name}_latlon0p5x0p5_%Y%m%d%H_P{forecast_hour_three}_allmbrs.grib2',
         'lontype': 'neg',
         'cycle': 12,
         'delay': 6.25,
-        'times': list(range(0, 385, 3)),
+        'times': list(range(6, 385, 6)),
         'timeout': 30,
-        'onegrib': True,
-        'one_ua': False,
-        'variable_regrid': False,
-        'subset_grib': False,
-        'regrid_software': 'wgrib2',
+        'onegrib': False,
         'ens_average': True,
     },
 }

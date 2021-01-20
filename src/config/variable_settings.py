@@ -1,17 +1,7 @@
 metvars = {
     'precip': {
         'mod': {
-            'rdps': ['APCP_SFC_0', 'APCP', 'surface'],
-            'gdps': ['APCP_SFC_0', 'APCP', 'surface'],
-            'reps': ['APCP_SFC_0', 'APCP', 'surface'],
             'geps': ['APCP_SFC_0', 'APCP', 'surface'],
-            'nam': [None, 'APCP', 'surface'],
-            'rap': [None, 'APCP', 'surface'],
-            'gfs': [None, 'APCP', 'surface'],
-            'sref': [None, 'APCP', 'surface'],
-            'gefs': [None, 'APCP', 'surface'],
-            'met_fr': ['TPRATE/surface', 'TPRATE', 'surface'],
-            'icon': ['tot_prec', 'TPRATE', 'surface'],
         },
         'acc': True,
         'weighted': True,
@@ -23,11 +13,55 @@ metvars = {
         'use_weights': 'apcp',
         'mult': None,
         'units': 'millimetres',
+        'correction': 'ratio',
         'scale': 10,
         'db_name': 'apcp',
         'smF': None,
         'neg': False,
     },
+    't_max': {
+        'mod': {
+            'geps': ['TMAX_TGL_2m', 'TMAX', '2 m above ground'],
+        },
+        'acc': False,
+        'weighted': True,
+        'corrected': True,
+        'interpolation': 'distance weighted',
+        'dp': 1,
+        'offset': None,
+        'std': True,
+        'mult': None,
+        'units': 'celsius',
+        'correction': 'difference',
+        'scale': 10,
+        'db_name': 'tmpc',
+        'smF': None,
+        'neg': False,
+    },
+    't_min': {
+        'mod': {
+            'geps': ['TMIN_TGL_2m', 'TMIN', '2 m above ground'],
+        },
+        'acc': False,
+        'weighted': True,
+        'corrected': True,
+        'interpolation': 'distance weighted',
+        'dp': 1,
+        'offset': None,
+        'std': True,
+        'mult': None,
+        'units': 'celsius',
+        'correction': 'difference',
+        'scale': 10,
+        'db_name': 'tmpc',
+        'smF': None,
+        'neg': False,
+    },
+}
+
+
+# old stuff
+'''
     't': {
         'mod': {
             'rdps': ['TMP_TGL_2', 'TMP', '2 m above ground'],
@@ -56,4 +90,5 @@ metvars = {
         'smF': None,
         'neg': False,
     },
-}
+
+'''
