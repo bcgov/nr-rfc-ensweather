@@ -9,10 +9,32 @@ if not base:
     base = './'
 
 from config.general_settings import VERSION
+from config.model_settings import models
+from downloads import download_models
+from processing import regrid_model_data, bias_correction
 
 
-def main():
-    pass
+
+def find_run_time(args):
+    if args.run is not None:
+        return dt.strptime(args.run, '%Y%m%d_%H')
+    else:
+        now = dt.utcnow()
+        if now.hour > 12:
+            hour = 12
+        else:
+            hour = 0
+        return dt(now.year, now.month, now.day, hour)
+
+
+def main(args):
+
+    if not args.process:
+        for model in models:
+            download_models.main(model, dt.utcnow())
+        regrid_model_data.main(dt.utcnow())
+    if not args.download:
+        bias_correction.main(dt.utcnow())
 
 
 def parse_arguments():
@@ -26,5 +48,4 @@ def parse_arguments():
 
 if __name__ == '__main__':
     args = parse_arguments()
-    print(args)
-    main()
+    main(args)
