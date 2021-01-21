@@ -23,7 +23,6 @@ def get_observations(stations, date_tm):
     if start_bias.year != date_tm.year:
         df_two = pd.read_csv(f'{gs.DIR}resources/climate_obs_{start_bias.year}.csv')
         df = df.append(df_two)
-
     df = df.loc[df['DATE'] >= start_bias]
     return df
 
@@ -41,7 +40,7 @@ def get_messages(date_tm, hour):
             if 'ens mean' in i and meta['mod']['geps'][1] in i:
                 messages.append(int(i.split(':')[0]))
     names.extend(['lon', 'lat'])
-    messages.extend([1, 2])
+    messages.extend([3, 12])
     return names, messages
 
 
@@ -49,29 +48,38 @@ def get_forecasts(stations, forecast_time):
     dfs = []
     for hour in gs.ALL_TIMES:
         hour_data = {}
-        names, messages = get_messages(forecast_time, hour)
-        for name, message in zip(names, messages):
-            with pygrib.open(forecast_time.strftime(f'{gs.DIR}models/geps/%Y%m%d%H/regrid_geps_{hour:03}.grib2')) as f:
-                hour_data[name] = f.message(message)['values']
+        try:
+            names, messages = get_messages(forecast_time, hour)
+            for name, message in zip(names, messages):
+                with pygrib.open(forecast_time.strftime(f'{gs.DIR}models/geps/%Y%m%d%H/ens_geps_{hour:03}.grib2')) as f:
+                    hour_data[name] = f.message(message)['values']
+        except Exception as _:
+            continue
         hour_data['forecast'] = [forecast_time] * hour_data['t_max'].shape[0]
         hour_data['datetime'] = [forecast_time + timedelta(hours=hour)] * hour_data['t_max'].shape[0]
         dfs.append(pd.DataFrame(hour_data))
+    if not dfs:
+        return
     data = pd.concat(dfs)
     return data
 
 
 def calculate_biases(key, meta, ff):
+    ff['day'] = ff.apply(lambda x: (x.datetime - x.forecast).total_seconds() / (3600 * 24), axis=1)
+    ob_key = f'ob_{key}'
+    bias_key = f'bias_{key}'
     if meta['correction'] == 'ratio':
         cap = 5
-        biases = forecasts / observations
-        biases[forecasts == observations] = 1
-        biases[biases > cap] = cap
-        biases[biases < 1 / cap] = 1 / cap
-        biases[biases != biases] = 1
+        biases = ff[['stn_id', 'day', ob_key, key]].groupby(['stn_id', 'day']).sum()
+        biases[bias_key] = biases[key] / biases[ob_key]
+        biases.loc[biases[key] == biases[ob_key], bias_key] = 1
+        biases.drop(columns=[key, ob_key], inplace=True)
+        biases.loc[biases[bias_key] > cap, bias_key] = cap
+        biases.loc[biases[bias_key] < 1 / cap, bias_key] = 1 / cap
+        biases.loc[biases[bias_key] != biases[bias_key], bias_key] = 1
     elif meta['correction'] == 'difference':
-        ff[f'bias_{key}'] = ff[key] - ff[f'ob_{key}']
-        ff['hour'] = (ff['datetime'] - ff['forecast']).dt.hour
-        biases = ff.groupby('hour').mean().reset_index(drop=False)
+        ff[bias_key] = ff[key] - ff[ob_key]
+        biases = ff[['stn_id', 'day', bias_key]].groupby(['stn_id', 'day']).mean()
 
     return biases
 
@@ -85,6 +93,8 @@ def reformat_obs(stations, observations):
         df['stn_id'] = stid
         new_obs.append(df)
     obs = pd.concat(new_obs)
+    obs['ob_t_max'] += 273.15
+    obs['ob_t_min'] += 273.15
     return obs
 
 
@@ -95,7 +105,15 @@ def attach_station_ids(forecasts, stations):
     stations[['lat', 'lon']] = stations[['lat', 'lon']].round(3)
     stations.set_index(['lat', 'lon'], inplace=True, drop=True)
     forecasts = forecasts.merge(stations, left_index=True, right_index=True, how='left').reset_index(drop=False)
-    return forecasts.drop_duplicates(['lat', 'lon', 'stn_id', 'datetime']).reset_index(drop=True)
+    return forecasts.drop_duplicates(['lat', 'lon', 'stn_id', 'forecast', 'datetime']).reset_index(drop=True)
+
+
+def correct_data(forecast):
+    for key, meta in vs.metvars.items():
+        if meta['correction'] == 'ratio':
+            forecast[key] /= forecast[f'bias_{key}']
+        elif meta['correction'] == 'difference':
+            forecast[key] -= forecast[f'bias_{key}']
 
 
 def main(date_tm):
@@ -105,13 +123,14 @@ def main(date_tm):
     observations = get_observations(stations, date_tm)
     days_back = gs.BIAS_DAYS + max(gs.ALL_TIMES) // 24 + 1
     for forecast_time in free_range(date_tm, date_tm - timedelta(days=days_back), timedelta(days=-1)):
-        forecasts.append(get_forecasts(stations, forecast_time))
-        break
+        forecast = get_forecasts(stations, forecast_time)
+        if forecast is not None:
+            forecasts.append(forecast)
     forecasts = pd.concat(forecasts)
     forecasts['day'] = forecasts.datetime.dt.day
     forecasts['month'] = forecasts.datetime.dt.month
     forecasts['year'] = forecasts.datetime.dt.year
-    agg = forecasts.groupby(['lat', 'lon', 'year', 'month', 'day'])
+    agg = forecasts.groupby(['lat', 'lon', 'forecast', 'year', 'month', 'day'])
     maxes = agg[['t_max']].max()
     mins = agg[['t_min']].min()
     acc = agg[['precip']].sum()
@@ -121,13 +140,19 @@ def main(date_tm):
     observations = reformat_obs(stations, observations)
     # stations = stations.drop_duplicates(['lat', 'lon'])
     forecasts = attach_station_ids(forecasts, stations)
+    forecast = forecasts.loc[forecasts['forecast'] == date_tm]
+    forecast['day'] = forecast.apply(lambda x: (x.datetime - x.forecast).total_seconds() / (3600 * 24), axis=1)
+    forecast.set_index(['stn_id', 'day'], drop=True, inplace=True)
     forecasts.set_index(['stn_id', 'datetime'], inplace=True, drop=True)
     observations.set_index(['stn_id', 'datetime'], inplace=True, drop=True)
-    ff = forecasts.merge(observations, how='inner', left_index=True, right_index=True)  # full_forecast
+    ff = forecasts.merge(observations, how='inner', left_index=True, right_index=True).reset_index(drop=False)  # full_forecast
     for key, meta in vs.metvars.items():
-        if meta['correction'] != 'difference':
-            continue
         biases = calculate_biases(key, meta, ff)
+        forecast = forecast.merge(biases, left_index=True, right_index=True, how='inner')
+    print(forecast[list(vs.metvar.keys())].head(20))
+    correct_data(forecast)
+    print(forecast[list(vs.metvar.keys())].head(20))
+    forecast.reset_index(drop=False, inplace=True)
 
 
 
