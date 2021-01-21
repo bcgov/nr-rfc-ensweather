@@ -14,7 +14,6 @@ from downloads import download_models
 from processing import regrid_model_data, bias_correction
 
 
-
 def find_run_time(args):
     if args.run is not None:
         return dt.strptime(args.run, '%Y%m%d_%H')
@@ -28,13 +27,13 @@ def find_run_time(args):
 
 
 def main(args):
-
+    run_time = find_run_time(args)
     if not args.process:
         for model in models:
-            download_models.main(model, dt.utcnow())
-        regrid_model_data.main(dt.utcnow())
+            download_models.main(model, run_time)
+        regrid_model_data.main(run_time)
     if not args.download:
-        bias_correction.main(dt.utcnow())
+        bias_correction.main(run_time)
 
 
 def parse_arguments():
