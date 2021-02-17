@@ -130,6 +130,11 @@ def main(m, date_tm, times=None):
         for t in times:
             if t > gs.TM_STGS['max']:
                 break
+
+            regrid_file = date_tm.strftime(f'{gs.DIR}models/{m}/%Y%m%d%H/ens_{m}_{t:03}.grib2')
+            if os.path.isfile(regrid_file):
+                continue
+
             if ms.models[m]['onegrib']:
                 res = h.fmt_orig_fn(date_tm, t, m)
                 url_list.append({'model': m, 'pre': res[0], 'fname': res[1]})
