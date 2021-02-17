@@ -1,4 +1,5 @@
 from datetime import datetime as dt, timedelta
+import os
 import subprocess
 import sys
 
@@ -13,10 +14,19 @@ import pygrib
 
 import config.general_settings as gs
 import config.variable_settings as vs
+from config.model_settings import models
 from common.helpers import free_range, get_stations
 
 
-def get_observations(stations, date_tm):
+def get_observations(date_tm):
+    """Pull observational data from stored csv files
+
+    Args:
+        date_tm (dt): Time of forecast run.
+
+    Returns:
+        pd.DataFrame: Observational data stored in pandas dataframe
+    """
     df = pd.read_csv(f'{gs.DIR}resources/climate_obs_{date_tm.year}.csv')
     df['DATE'] = df['DATE'].apply(pd.to_datetime)
     start_bias = date_tm - timedelta(days=gs.BIAS_DAYS)
@@ -27,36 +37,62 @@ def get_observations(stations, date_tm):
     return df
 
 
-def get_messages(date_tm, hour):
-    cmd = date_tm.strftime(f'{gs.WGRIB2} {gs.DIR}models/geps/%Y%m%d%H/ens_geps_{hour:03}.grib2 -s -n')
+def get_messages(date_tm, hour, model):
+    """Find the message numbers for the grib files that we want. (ens mean, variable percentiles)
+
+    Args:
+        date_tm (dt): Time of forecast
+        hour (int): Hour of the forecast grib file
+        model (str): Name of the meteorological model grib
+
+    Returns:
+        tuple: Correlated lists of names and grib message numbers
+    """
+    cmd = date_tm.strftime(f'{gs.WGRIB2} {gs.DIR}models/{model}/%Y%m%d%H/ens_{model}_{hour:03}.grib2 -s -n')
     p = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE).communicate()
     res = p[0].decode('utf-8')
     res = (res.split('\n'))[:-1]
     names = []
     messages = []
     for key, meta in vs.metvars.items():
-        names.append(key)
         for i in res:
-            if 'ens mean' in i and meta['mod']['geps'][1] in i:
-                messages.append(int(i.split(':')[0]))
+            if meta['mod'][model][1] in i:
+                if 'ens mean' in i:
+                    messages.append(int(i.split(':')[0]))
+                    names.append(f'{key}_mean')
+                if f"{meta['ensemble_percentiles'][0]}%" in i:
+                    messages.append(int(i.split(':')[0]))
+                    names.append(f'{key}_lower_percentile')
+                if f"{meta['ensemble_percentiles'][1]}" in i:
+                    messages.append(int(i.split(':')[0]))
+                    names.append(f'{key}_upper_percentile')
     names.extend(['lon', 'lat'])
     messages.extend([3, 12])
     return names, messages
 
 
-def get_forecasts(stations, forecast_time):
+def get_forecasts(forecast_time, model):
+    """Open and load all old forecast data to be used for bias correction
+
+    Args:
+        forecast_time (dt): Time of the forecast
+        model (str): Name of the meteorological model forecast
+
+    Returns:
+        pd.DataFrame: Sequential data of all recent forecasts
+    """
     dfs = []
     for hour in gs.ALL_TIMES:
         hour_data = {}
         try:
-            names, messages = get_messages(forecast_time, hour)
+            names, messages = get_messages(forecast_time, hour, model)
             for name, message in zip(names, messages):
-                with pygrib.open(forecast_time.strftime(f'{gs.DIR}models/geps/%Y%m%d%H/ens_geps_{hour:03}.grib2')) as f:
+                with pygrib.open(forecast_time.strftime(f'{gs.DIR}models/{model}/%Y%m%d%H/ens_{model}_{hour:03}.grib2')) as f:
                     hour_data[name] = f.message(message)['values']
         except Exception as _:
             continue
-        hour_data['forecast'] = [forecast_time] * hour_data['t_max'].shape[0]
-        hour_data['datetime'] = [forecast_time + timedelta(hours=hour)] * hour_data['t_max'].shape[0]
+        hour_data['forecast'] = [forecast_time] * hour_data['t_max_mean'].shape[0]
+        hour_data['datetime'] = [forecast_time + timedelta(hours=hour)] * hour_data['t_max_mean'].shape[0]
         dfs.append(pd.DataFrame(hour_data))
     if not dfs:
         return
@@ -65,26 +101,46 @@ def get_forecasts(stations, forecast_time):
 
 
 def calculate_biases(key, meta, ff):
-    ff['day'] = ff.apply(lambda x: (x.datetime - x.forecast).total_seconds() / (3600 * 24), axis=1)
+    """Calculate the historical forecast bias for given variables
+
+    Args:
+        key (str): Variable name
+        meta (dict): Variable information
+        ff (pd.DataFrame): Full forecasts with observations attached
+
+    Returns:
+        pd.DataFrame: ff (input) with biases attached
+    """
     ob_key = f'ob_{key}'
-    bias_key = f'bias_{key}'
+    bias_key = f'bias_{key}_mean'
+    mean_key = f'{key}_mean'
     if meta['correction'] == 'ratio':
         cap = 5
-        biases = ff[['stn_id', 'day', ob_key, key]].groupby(['stn_id', 'day']).sum()
-        biases[bias_key] = biases[key] / biases[ob_key]
-        biases.loc[biases[key] == biases[ob_key], bias_key] = 1
-        biases.drop(columns=[key, ob_key], inplace=True)
+        biases = ff[['stn_id', 'forecast_day', ob_key, mean_key]].groupby(['stn_id', 'forecast_day']).sum()
+        biases[bias_key] = biases[mean_key] / biases[ob_key]
+        biases.loc[biases[mean_key] == biases[ob_key], bias_key] = 1
+        biases.drop(columns=[mean_key, ob_key], inplace=True)
         biases.loc[biases[bias_key] > cap, bias_key] = cap
         biases.loc[biases[bias_key] < 1 / cap, bias_key] = 1 / cap
         biases.loc[biases[bias_key] != biases[bias_key], bias_key] = 1
     elif meta['correction'] == 'difference':
-        ff[bias_key] = ff[key] - ff[ob_key]
-        biases = ff[['stn_id', 'day', bias_key]].groupby(['stn_id', 'day']).mean()
+        ff[bias_key] = ff[mean_key] - ff[ob_key]
+        biases = ff[['stn_id', 'forecast_day', bias_key]].groupby(['stn_id', 'forecast_day']).mean()
 
     return biases
 
 
 def reformat_obs(stations, observations):
+    """Reformat observational data to be 5, columns wide (stn id, datetime, ob_t_max, ob_t_min, ob_precip),
+    Before reformatting, each station has it's own 3 columns.
+
+    Args:
+        stations (pd.DataFrame): Station location and name data
+        observations (pd.DataFrame): Station variable observational data
+
+    Returns:
+        pd.DataFrame: Reformatted observations
+    """
     new_obs = []
     for stid in stations['stn_id'].values:
         cols = {'DATE': 'datetime', f'{stid}-TX': 'ob_t_max', f'{stid}-TN': 'ob_t_min', f'{stid}-PP': 'ob_precip'}
@@ -93,13 +149,20 @@ def reformat_obs(stations, observations):
         df['stn_id'] = stid
         new_obs.append(df)
     obs = pd.concat(new_obs)
-    obs['ob_t_max'] += 273.15
-    obs['ob_t_min'] += 273.15
-    return obs
+    return obs.reset_index(drop=True)
 
 
 def attach_station_ids(forecasts, stations):
-    forecasts['lon'] -= 360
+    """Using location information, merge forecasts and stations on latitude/longitude
+
+    Args:
+        forecasts (pd.DataFrame): Forecast data
+        stations (pd.DataFrame): Station location data
+
+    Returns:
+        pd.DataFrame: Forecast data with station ids attached
+    """
+    forecasts.loc[forecasts['lon'] > 0, 'lon'] -= 360
     forecasts[['lat', 'lon']] = forecasts[['lat', 'lon']].round(3)
     forecasts.set_index(['lat', 'lon'], inplace=True, drop=True)
     stations[['lat', 'lon']] = stations[['lat', 'lon']].round(3)
@@ -109,51 +172,139 @@ def attach_station_ids(forecasts, stations):
 
 
 def correct_data(forecast):
+    """Correct the current forecast using biases calculated from historical errors
+
+    Args:
+        forecast (pd.DataFrame): Forecast data
+    """
     for key, meta in vs.metvars.items():
-        if meta['correction'] == 'ratio':
-            forecast[key] /= forecast[f'bias_{key}']
-        elif meta['correction'] == 'difference':
-            forecast[key] -= forecast[f'bias_{key}']
+        for suffix in ['_mean', '_lower_percentile', '_upper_percentile']:
+            key_suffix = f'{key}{suffix}'
+            if meta['correction'] == 'ratio':
+                forecast.loc[~forecast[f'bias_{key}_mean'].isna(), key_suffix] /= forecast.loc[~forecast[f'bias_{key}_mean'].isna(), f'bias_{key}_mean']
+            elif meta['correction'] == 'difference':
+                forecast.loc[~forecast[f'bias_{key}_mean'].isna(), key_suffix] -= forecast.loc[~forecast[f'bias_{key}_mean'].isna(), f'bias_{key}_mean']
+            forecast[key_suffix] = forecast[key_suffix].round(1)
+
+
+def reformat_to_csv(forecast, date_tm):
+    """Convert the forecast dataframe and write to excel files in proper RFP format.
+
+    Args:
+        forecast (pd.DataFrame): Forecast data
+        date_tm (dt): Time of the current forecast
+    """
+    stns = set(forecast['stn_id'].values)
+    cols = [f'{i}_{j}' for i in vs.metvars.keys() for j in ['mean', 'upper_percentile', 'lower_percentile']]
+    cols.append('datetime')
+    dfs = []
+    folder = date_tm.strftime('%Y-%m-%d')
+    forecast['datetime'] = forecast['datetime'].apply(lambda x: x.strftime('%Y-%m-%d'))
+    # os.makedirs(f'{gs.DIR}/output/{folder}', exist_ok=True)
+    writer = pd.ExcelWriter(f'{gs.DIR}/output/daily_raw/{folder}.xlsx')
+    for stn in sorted(list(stns)):
+        df = forecast.loc[forecast['stn_id'] == stn, cols].set_index('datetime', drop=True)
+        rename = {i: f'{stn.upper()}_{i}' for i in cols if i != 'datetime'}
+        df.rename(columns=rename, inplace=True)
+        df.to_excel(writer, sheet_name=f'{stn}')
+        dfs.append(df)
+    writer.save()
+    final = pd.concat(dfs, axis=1)
+    cols = [i for i in final if i.endswith('mean')]
+    final = final[cols]
+    rename = {i: f'{i[:-5]}' for i in cols}
+    final.rename(columns=rename, inplace=True)
+    final.to_excel(f'{gs.DIR}/output/forecasts/{folder}.xlsx', index=True)
+
+
+def aggregate_forecasts(date_tm, days_back, model):
+    """Open all relevant previous forecasts and concatenate them into one dataframe
+
+    Args:
+        date_tm (dt): Time of the current forecast
+        days_back (int): Number of forecasts being used to bias correct
+        model (str): Name of the model being corrected (model forecast)
+
+    Returns:
+        pd.DataFrame: All relevant forecasts.
+    """
+    forecasts = []
+    for forecast_time in free_range(date_tm, date_tm - timedelta(days=days_back), timedelta(days=-1)):
+        forecast = get_forecasts(forecast_time, model)
+        if forecast is not None:
+            forecasts.append(forecast)
+    prev_forecasts = pd.concat(forecasts)
+    prev_forecasts['day'] = prev_forecasts.datetime.dt.day
+    prev_forecasts['month'] = prev_forecasts.datetime.dt.month
+    prev_forecasts['year'] = prev_forecasts.datetime.dt.year
+    return prev_forecasts
+
+
+def find_aggregate_values(prev_forecasts):
+    """Forecasts are downloaded in 6 hour increments, these need to be reduced
+    to daily values.
+
+    Args:
+        prev_forecasts (pd.DataFrame): All previous forecasts
+
+    Returns:
+        pd.DataFrame: Reduced forecasts
+    """
+    agg = prev_forecasts.groupby(['lat', 'lon', 'forecast', 'year', 'month', 'day'])
+    min_cols = [i for i in prev_forecasts if 'min' in i]
+    max_cols = [i for i in prev_forecasts if 'max' in i]
+    sum_cols = [i for i in prev_forecasts if 'precip' in i]
+    maxes = agg[max_cols].max()
+    mins = agg[min_cols].min()
+    acc = agg[sum_cols].sum()
+    prev_forecasts = maxes.merge(mins, left_index=True, right_index=True).merge(acc, left_index=True, right_index=True).reset_index(drop=False)
+    prev_forecasts['datetime'] = prev_forecasts.apply(lambda x: dt(int(x.year), int(x.month), int(x.day)), axis=1)
+    return prev_forecasts
 
 
 def main(date_tm):
     stations = get_stations()
     stations.rename(columns={'latitude': 'lat', 'longitude': 'lon'}, inplace=True)
-    forecasts = []
-    observations = get_observations(stations, date_tm)
+    observations = get_observations(date_tm)
     days_back = gs.BIAS_DAYS + max(gs.ALL_TIMES) // 24 + 1
-    for forecast_time in free_range(date_tm, date_tm - timedelta(days=days_back), timedelta(days=-1)):
-        forecast = get_forecasts(stations, forecast_time)
-        if forecast is not None:
-            forecasts.append(forecast)
-    forecasts = pd.concat(forecasts)
-    forecasts['day'] = forecasts.datetime.dt.day
-    forecasts['month'] = forecasts.datetime.dt.month
-    forecasts['year'] = forecasts.datetime.dt.year
-    agg = forecasts.groupby(['lat', 'lon', 'forecast', 'year', 'month', 'day'])
-    maxes = agg[['t_max']].max()
-    mins = agg[['t_min']].min()
-    acc = agg[['precip']].sum()
-    forecasts = maxes.merge(mins, left_index=True, right_index=True).merge(acc, left_index=True, right_index=True).reset_index(drop=False)
-    forecasts['datetime'] = forecasts.apply(lambda x: dt(int(x.year), int(x.month), int(x.day)), axis=1)
+    corrected_forecasts = []
+    for model in models:
+        prev_forecasts = aggregate_forecasts(date_tm, days_back, model)
 
-    observations = reformat_obs(stations, observations)
-    # stations = stations.drop_duplicates(['lat', 'lon'])
-    forecasts = attach_station_ids(forecasts, stations)
-    forecast = forecasts.loc[forecasts['forecast'] == date_tm]
-    forecast['day'] = forecast.apply(lambda x: (x.datetime - x.forecast).total_seconds() / (3600 * 24), axis=1)
-    forecast.set_index(['stn_id', 'day'], drop=True, inplace=True)
-    forecasts.set_index(['stn_id', 'datetime'], inplace=True, drop=True)
-    observations.set_index(['stn_id', 'datetime'], inplace=True, drop=True)
-    ff = forecasts.merge(observations, how='inner', left_index=True, right_index=True).reset_index(drop=False)  # full_forecast
-    for key, meta in vs.metvars.items():
-        biases = calculate_biases(key, meta, ff)
-        forecast = forecast.merge(biases, left_index=True, right_index=True, how='inner')
-    print(forecast[list(vs.metvar.keys())].head(20))
-    correct_data(forecast)
-    print(forecast[list(vs.metvar.keys())].head(20))
-    forecast.reset_index(drop=False, inplace=True)
+        for key, meta in vs.metvars.items():
+            if meta['unit_offset'] != 0:
+                cols = [i for i in prev_forecasts if key in i]
+                prev_forecasts[cols] -= meta['unit_offset']
 
+        forecast = prev_forecasts.loc[prev_forecasts['forecast'] == date_tm]
+        prev_forecasts = prev_forecasts.loc[prev_forecasts['forecast'] != date_tm]
+
+        prev_forecasts = find_aggregate_values(prev_forecasts)
+        forecast = find_aggregate_values(forecast)
+
+        observations = reformat_obs(stations, observations)
+
+        prev_forecasts = attach_station_ids(prev_forecasts, stations.copy())
+        forecast = attach_station_ids(forecast, stations.copy())
+
+        forecast['day'] = forecast.apply(lambda x: (x.datetime - x.forecast).total_seconds() / (3600 * 24), axis=1)
+        forecast.set_index(['stn_id', 'day'], drop=True, inplace=True)
+        prev_forecasts.set_index(['stn_id', 'datetime'], inplace=True, drop=True)
+        observations.set_index(['stn_id', 'datetime'], inplace=True, drop=True)
+        ff = prev_forecasts.merge(observations, how='left', left_index=True, right_index=True).reset_index(drop=False)  # full_forecast
+        ff['forecast_day'] = ff.apply(lambda x: (x.datetime - x.forecast).total_seconds() / (3600 * 24), axis=1)
+
+        for key, meta in vs.metvars.items():
+            biases = calculate_biases(key, meta, ff)
+            forecast = forecast.merge(biases, left_index=True, right_index=True, how='inner')
+
+        correct_data(forecast)
+        forecast.reset_index(drop=False, inplace=True)
+        forecast['model'] = model
+        corrected_forecasts.append(forecast)
+    forecast = pd.concat(corrected_forecasts)
+    forecast = forecast.groupby(['stn_id', 'datetime']).mean().reset_index(drop=False)
+    reformat_to_csv(forecast, date_tm)
 
 
 if __name__ == '__main__':
