@@ -1,6 +1,7 @@
 import argparse
 import sys
-from datetime import datetime as dt
+from datetime import datetime as dt, timedelta
+from glob import glob
 
 base = '/'.join(__file__.split('/')[:-1])
 if base not in sys.path:
@@ -8,10 +9,11 @@ if base not in sys.path:
 if not base:
     base = './'
 
-from config.general_settings import VERSION
+from config.general_settings import VERSION, BIAS_DAYS
 from config.model_settings import models
 from downloads import download_models
 from processing import regrid_model_data, bias_correction
+from common.helpers import free_range
 
 
 def find_run_time(args):
@@ -19,21 +21,26 @@ def find_run_time(args):
         return dt.strptime(args.run, '%Y%m%d_%H')
     else:
         now = dt.utcnow()
-        if now.hour > 12:
-            hour = 12
-        else:
-            hour = 0
+        hour = 0 if 4 <= now.hour <= 16 else 12
         return dt(now.year, now.month, now.day, hour)
+
+
+def download_needed_runs(run_time):
+    for model in models:
+        for tm in free_range(run_time, run_time - timedelta(days=BIAS_DAYS), timedelta(hours=-12)):
+            if tm < run_time - timedelta(days=models[model]['archived_days']):
+                break
+            download_models.main(model, tm)
+            regrid_model_data.main(tm, model)
 
 
 def main(args):
     run_time = find_run_time(args)
     if not args.process:
-        for model in models:
-            download_models.main(model, run_time)
-        regrid_model_data.main(run_time)
+        download_needed_runs(run_time)
     if not args.download:
-        bias_correction.main(run_time)
+        for model in models:
+            bias_correction.main(run_time, model)
 
 
 def parse_arguments():

@@ -14,6 +14,7 @@ models = {
         # 'fn': 'file=cmc_geavg.t%Hz.pgrb2a.0p50.f{forecast_hour_three}{level_var_box}&dir=%%2Fcmce.%Y%m%d%%2F%H%%2Fpgrb2ap5',
         'url': 'https://dd.weather.gc.ca/ensemble/geps/grib2/raw/%H/{forecast_hour_three}/',
         'fn': 'CMC_geps-raw_{grib_name}_latlon0p5x0p5_%Y%m%d%H_P{forecast_hour_three}_allmbrs.grib2',
+        'archived_days': 3,
         'lontype': 'neg',
         'cycle': 12,
         'delay': 6.25,

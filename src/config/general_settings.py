@@ -1,6 +1,6 @@
 from datetime import datetime as dt
 # POSSIBLE USER SETTINGS
-MAX_HOURS = 12
+MAX_HOURS = 19
 
 
 # NON USER SETTINGS
@@ -22,7 +22,7 @@ DM = {
 }
 
 DIR = '/Users/paulpries/Documents/bc_forecasting/'
-ARCHIVED_RUN = dt(2021, 1, 19, 0)
+ARCHIVED_RUN = dt(2021, 2, 11, 0)
 WGRIB2 = '/opt/local/bin/wgrib2'
 
 MAX_RETRIES = 3
