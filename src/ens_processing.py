@@ -39,8 +39,7 @@ def main(args):
     if not args.process:
         download_needed_runs(run_time)
     if not args.download:
-        for model in models:
-            bias_correction.main(run_time, model)
+        bias_correction.main(run_time)
 
 
 def parse_arguments():
