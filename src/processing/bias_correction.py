@@ -251,6 +251,7 @@ def find_aggregate_values(prev_forecasts, date_tm):
         pd.DataFrame: Reduced forecasts
     """
     dfs = []
+    prev_forecasts.reset_index(drop=True, inplace=True)
     prev_forecasts['agg_day'] = -1
     for key, meta in vs.metvars.items():
         start_hour = meta['utc_time_start']
@@ -270,7 +271,7 @@ def find_aggregate_values(prev_forecasts, date_tm):
 
     prev_forecasts = dfs[0]
     for df in dfs[1:]:
-        prev_forecasts = prev_forecasts.merge(df, left_index=True, right_index=True)
+        prev_forecasts = prev_forecasts.merge(df, left_index=True, right_index=True, how='outer')
     prev_forecasts.reset_index(drop=False, inplace=True)
     prev_forecasts['datetime'] = prev_forecasts.apply(lambda x: (x.forecast + timedelta(days=x.agg_day, hours=date_tm.hour)).replace(hour=0), axis=1)
     return prev_forecasts
