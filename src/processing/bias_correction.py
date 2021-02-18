@@ -71,7 +71,7 @@ def get_messages(date_tm, hour, model):
     return names, messages
 
 
-def get_forecasts(forecast_time, model):
+def get_forecast(forecast_time, model):
     """Open and load all old forecast data to be used for bias correction
 
     Args:
@@ -217,7 +217,7 @@ def reformat_to_csv(forecast, date_tm):
     final.to_excel(f'{gs.DIR}/output/forecasts/{folder}.xlsx', index=True)
 
 
-def aggregate_forecasts(date_tm, days_back, model):
+def collect_forecasts(date_tm, days_back, model):
     """Open all relevant previous forecasts and concatenate them into one dataframe
 
     Args:
@@ -230,7 +230,7 @@ def aggregate_forecasts(date_tm, days_back, model):
     """
     forecasts = []
     for forecast_time in free_range(date_tm, date_tm - timedelta(days=days_back), timedelta(days=-1)):
-        forecast = get_forecasts(forecast_time, model)
+        forecast = get_forecast(forecast_time, model)
         if forecast is not None:
             forecasts.append(forecast)
     prev_forecasts = pd.concat(forecasts)
@@ -240,7 +240,7 @@ def aggregate_forecasts(date_tm, days_back, model):
     return prev_forecasts
 
 
-def find_aggregate_values(prev_forecasts):
+def find_aggregate_values(prev_forecasts, date_tm):
     """Forecasts are downloaded in 6 hour increments, these need to be reduced
     to daily values.
 
@@ -250,15 +250,29 @@ def find_aggregate_values(prev_forecasts):
     Returns:
         pd.DataFrame: Reduced forecasts
     """
-    agg = prev_forecasts.groupby(['lat', 'lon', 'forecast', 'year', 'month', 'day'])
-    min_cols = [i for i in prev_forecasts if 'min' in i]
-    max_cols = [i for i in prev_forecasts if 'max' in i]
-    sum_cols = [i for i in prev_forecasts if 'precip' in i]
-    maxes = agg[max_cols].max()
-    mins = agg[min_cols].min()
-    acc = agg[sum_cols].sum()
-    prev_forecasts = maxes.merge(mins, left_index=True, right_index=True).merge(acc, left_index=True, right_index=True).reset_index(drop=False)
-    prev_forecasts['datetime'] = prev_forecasts.apply(lambda x: dt(int(x.year), int(x.month), int(x.day)), axis=1)
+    dfs = []
+    prev_forecasts['agg_day'] = -1
+    for key, meta in vs.metvars.items():
+        start_hour = meta['utc_time_start']
+        start_hour += date_tm.hour
+        end_hour = start_hour + meta['time_range_length']
+        agg_cols = [i for i in prev_forecasts if key in i] + ['lat', 'lon', 'forecast', 'agg_day', 'datetime']
+        df = prev_forecasts[agg_cols].copy()
+        for idx in range(max(gs.ALL_TIMES) // 24):
+            df.loc[(df['datetime'] > df['forecast'] + timedelta(hours=start_hour)) &
+                   (df['datetime'] <= df['forecast'] + timedelta(hours=end_hour)), 'agg_day'] = idx
+            start_hour += 24
+            end_hour += 24
+        df.drop(df.loc[df['agg_day'] == -1].index, inplace=True)
+        df.drop(columns=['datetime'], inplace=True)
+        agg = df.groupby(['lat', 'lon', 'forecast', 'agg_day']).agg(meta['aggregate_function'])
+        dfs.append(agg)
+
+    prev_forecasts = dfs[0]
+    for df in dfs[1:]:
+        prev_forecasts = prev_forecasts.merge(df, left_index=True, right_index=True)
+    prev_forecasts.reset_index(drop=False, inplace=True)
+    prev_forecasts['datetime'] = prev_forecasts.apply(lambda x: (x.forecast + timedelta(days=x.agg_day, hours=date_tm.hour)).replace(hour=0), axis=1)
     return prev_forecasts
 
 
@@ -269,7 +283,7 @@ def main(date_tm):
     days_back = gs.BIAS_DAYS + max(gs.ALL_TIMES) // 24 + 1
     corrected_forecasts = []
     for model in models:
-        prev_forecasts = aggregate_forecasts(date_tm, days_back, model)
+        prev_forecasts = collect_forecasts(date_tm, days_back, model)
 
         for key, meta in vs.metvars.items():
             if meta['unit_offset'] != 0:
@@ -279,8 +293,8 @@ def main(date_tm):
         forecast = prev_forecasts.loc[prev_forecasts['forecast'] == date_tm]
         prev_forecasts = prev_forecasts.loc[prev_forecasts['forecast'] != date_tm]
 
-        prev_forecasts = find_aggregate_values(prev_forecasts)
-        forecast = find_aggregate_values(forecast)
+        prev_forecasts = find_aggregate_values(prev_forecasts, date_tm)
+        forecast = find_aggregate_values(forecast, date_tm)
 
         observations = reformat_obs(stations, observations)
 

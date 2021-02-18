@@ -128,32 +128,93 @@ class Test_Unit:
         bc.correct_data(forecast)
         assert_frame_equal(forecast, exp, check_like=True)
 
-    def test_find_aggregate_values(self):
+    def test_find_aggregate_values_first_day_0z(self):
+        date_tm = dt(2021, 1, 10, 0)
         prev_forecasts = pd.DataFrame({
-            'lat': [49.9] * 4,
-            'lon': [-97.2] * 4,
-            'forecast': [1, 1, 2, 2],
-            'year': [2021] * 4,
-            'month': [1] * 4,
-            'day': [1, 1, 2, 2],
-            't_max_mean': [10, 20, 15, 18],
-            't_min_mean': [5, 10, 7, 8],
-            'precip_mean': [0, 1, 5, 6]
+            'lat': [49.9] * 10,
+            'lon': [-97.2] * 10,
+            'datetime': [dt(2021, 1, 8, 6), dt(2021, 1, 8, 12), dt(2021, 1, 8, 18), dt(2021, 1, 9, 0), dt(2021, 1, 9, 6),
+                         dt(2021, 1, 9, 6), dt(2021, 1, 9, 12), dt(2021, 1, 9, 18), dt(2021, 1, 10, 0), dt(2021, 1, 10, 6)],
+            'forecast': [dt(2021, 1, 8, 0), dt(2021, 1, 8, 0), dt(2021, 1, 8, 0), dt(2021, 1, 8, 0), dt(2021, 1, 8, 0),
+                         dt(2021, 1, 9, 0), dt(2021, 1, 9, 0), dt(2021, 1, 9, 0), dt(2021, 1, 9, 0), dt(2021, 1, 9, 0)],
+            't_max_mean': [500, 500, 19, 22, 500,  # only the third and fourth value of each row should be examined (due to time ranges used to find max temperature)
+                           500, 500, 21, 18, 500],
+            't_min_mean': [-100, -100, -100, -100, 11,    # only the last values of each row should be examined (time range of minimum temperature)
+                           -100, -100, -100, -100, 9],
+            'precip_mean': [100, 1, 1, 1, 1,  # the first value of each row should not be included in the sum (time range of precip)
+                            200, 5, 5, 5, 5]
         })
         exp = pd.DataFrame({
             'lat': [49.9] * 2,
             'lon': [-97.2] * 2,
-            'forecast': [1, 2],
-            'year': [2021] * 2,
-            'month': [1] * 2,
-            'day': [1, 2],
-            't_max_mean': [20, 18],
-            't_min_mean': [5, 7],
-            'precip_mean': [1, 11],
-            'datetime': [dt(2021, 1, 1), dt(2021, 1, 2)],
+            'datetime': [dt(2021, 1, 8, 0), dt(2021, 1, 9, 0)],
+            'agg_day': [0, 0],
+            'forecast': [dt(2021, 1, 8, 0), dt(2021, 1, 9, 0)],
+            't_max_mean': [22, 21],
+            't_min_mean': [11, 9],
+            'precip_mean': [4, 20],
         })
-        ret = bc.find_aggregate_values(prev_forecasts)
+        ret = bc.find_aggregate_values(prev_forecasts, date_tm)
         assert_frame_equal(ret, exp, check_like=True)
+
+    def test_find_aggregate_values_first_day_12z(self):
+        date_tm = dt(2021, 1, 9, 12)
+        prev_forecasts = pd.DataFrame({
+            'lat': [49.9] * 10,
+            'lon': [-97.2] * 10,
+            'datetime': [dt(2021, 1, 8, 6), dt(2021, 1, 8, 12), dt(2021, 1, 8, 18), dt(2021, 1, 9, 0), dt(2021, 1, 9, 6),
+                         dt(2021, 1, 9, 6), dt(2021, 1, 9, 12), dt(2021, 1, 9, 18), dt(2021, 1, 10, 0), dt(2021, 1, 10, 6)],
+            'forecast': [dt(2021, 1, 7, 12), dt(2021, 1, 7, 12), dt(2021, 1, 7, 12), dt(2021, 1, 7, 12), dt(2021, 1, 7, 12),
+                         dt(2021, 1, 8, 12), dt(2021, 1, 8, 12), dt(2021, 1, 8, 12), dt(2021, 1, 8, 12), dt(2021, 1, 8, 12)],
+            't_max_mean': [500, 500, 19, 22, 500,  # only the third and fourth value of each row should be examined (due to time ranges used to find max temperature)
+                           500, 500, 21, 18, 500],
+            't_min_mean': [-100, -100, -100, -100, 11,    # only the last values of each row should be examined (time range of minimum temperature)
+                           -100, -100, -100, -100, 9],
+            'precip_mean': [100, 1, 1, 1, 1,  # the first value of each row should not be included in the sum (time range of precip)
+                            200, 5, 5, 5, 5]
+        })
+        exp = pd.DataFrame({
+            'lat': [49.9] * 2,
+            'lon': [-97.2] * 2,
+            'datetime': [dt(2021, 1, 8, 0), dt(2021, 1, 9, 0)],
+            'agg_day': [0, 0],
+            'forecast': [dt(2021, 1, 7, 12), dt(2021, 1, 8, 12)],
+            't_max_mean': [22, 21],
+            't_min_mean': [11, 9],
+            'precip_mean': [4, 20],
+        })
+        ret = bc.find_aggregate_values(prev_forecasts, date_tm)
+        assert_frame_equal(ret, exp, check_like=True)
+
+    def test_find_aggregate_values_two_day_0z(self):
+        date_tm = dt(2021, 1, 10, 0)
+        prev_forecasts = pd.DataFrame({
+            'lat': [49.9] * 9,
+            'lon': [-97.2] * 9,
+            'datetime': [dt(2021, 1, 8, 6), dt(2021, 1, 8, 12), dt(2021, 1, 8, 18), dt(2021, 1, 9, 0), dt(2021, 1, 9, 6),
+                         dt(2021, 1, 9, 12), dt(2021, 1, 9, 18), dt(2021, 1, 10, 0), dt(2021, 1, 10, 6)],
+            'forecast': [dt(2021, 1, 8, 0), dt(2021, 1, 8, 0), dt(2021, 1, 8, 0), dt(2021, 1, 8, 0), dt(2021, 1, 8, 0),
+                         dt(2021, 1, 8, 0), dt(2021, 1, 8, 0), dt(2021, 1, 8, 0), dt(2021, 1, 8, 0)],
+            't_max_mean': [500, 500, 19, 22, 500,
+                           500, 21, 18, 500],
+            't_min_mean': [-100, -100, -100, -100, 11,
+                           -10, -100, -100, 9],
+            'precip_mean': [100, 1, 1, 1, 1,
+                            5, 5, 5, 5]
+        })
+        exp = pd.DataFrame({
+            'lat': [49.9] * 2,
+            'lon': [-97.2] * 2,
+            'datetime': [dt(2021, 1, 8, 0), dt(2021, 1, 9, 0)],
+            'agg_day': [0, 1],
+            'forecast': [dt(2021, 1, 8, 0), dt(2021, 1, 8, 0)],
+            't_max_mean': [22, 21],
+            't_min_mean': [-10, 9],
+            'precip_mean': [4, 20],
+        })
+        ret = bc.find_aggregate_values(prev_forecasts, date_tm)
+        assert_frame_equal(ret, exp, check_like=True)
+
 
 @pytest.mark.pre_commit
 class Test_Pre_Commit:
