@@ -1,7 +1,9 @@
 from datetime import datetime as dt
 # POSSIBLE USER SETTINGS
-MAX_HOURS = 19
+MAX_HOURS = 9999
 
+DIR = '/Users/paulpries/Documents/bc_forecasting/'
+WGRIB2 = '/opt/local/bin/wgrib2'
 
 # NON USER SETTINGS
 VERSION = 0.1
@@ -21,9 +23,7 @@ DM = {
     'lon1': -113,
 }
 
-DIR = '/Users/paulpries/Documents/bc_forecasting/'
 ARCHIVED_RUN = dt(2021, 2, 11, 0)
-WGRIB2 = '/opt/local/bin/wgrib2'
 
 MAX_RETRIES = 3
 MAX_DOWNLOADS = 10
