@@ -52,6 +52,18 @@ def get_stations():
 
 
 def fmt_orig_fn(rt, tm, m, lev=None, var=None):
+    """URL formatting function (fills spots found in model settings url function)
+
+    Args:
+        rt (dt): Runtime datetime
+        tm (int): Hour of forecast
+        m (str): model name
+        lev (int, optional): Barometric level of variable. Defaults to None.
+        var (str, optional): Variable name (if gribs are separated by variables). Defaults to None.
+
+    Returns:
+        [type]: [description]
+    """
     t02 = f'{tm:02}'
     t03 = f'{tm:03}'
 

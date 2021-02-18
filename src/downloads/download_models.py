@@ -99,6 +99,16 @@ def make_dir(m, cr: dt):
 
 
 def check_downloads(model, runtime, url_list):
+    """If most of the model is not downloading correctly, quit downloads early
+
+    Args:
+        model (str): Name of model being downloaded
+        runtime (dt): Datetime of forecast being produced
+        url_list (list): List of urls
+
+    Returns:
+        bool: Whether or not downloads appear to be working correctly
+    """
     expected = len(url_list)
     base = runtime.strftime(f'{gs.DIR}models/{model}/%Y%m%d%H/*')
     files = glob(base)

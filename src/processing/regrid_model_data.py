@@ -17,6 +17,14 @@ from config import model_settings as ms
 
 
 def convert_location_to_wgrib2(stations):
+    """Convert locations to colon separated string
+
+    Args:
+        stations (pd.DataFrame): Dataframe of station location information
+
+    Returns:
+        str: locations formatted for wgrib usage
+    """
     locs = []
     for lat, lon in zip(stations['latitude'].values, stations['longitude'].values):
         locs.append(f'{lon}:{lat}')
@@ -24,6 +32,12 @@ def convert_location_to_wgrib2(stations):
 
 
 def ensemble_regrid(date_tm, model):
+    """Regrid ensemble model from lat/lon grid to ensemble processed station locations
+
+    Args:
+        date_tm (dt): Time of forecast
+        model (str): Model name
+    """
     stations = get_stations()
     station_locations = convert_location_to_wgrib2(stations)
     folder = date_tm.strftime(f'{gs.DIR}models/{model}/%Y%m%d%H/')
