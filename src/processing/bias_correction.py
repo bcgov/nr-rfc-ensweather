@@ -299,6 +299,7 @@ def main(date_tm):
     days_back = gs.BIAS_DAYS + max(gs.ALL_TIMES) // 24 + 1
     corrected_forecasts = []
     for model in models:
+        # Find all relevant forecasts
         prev_forecasts = collect_forecasts(date_tm, days_back, model)
 
         for key, meta in vs.metvars.items():
@@ -306,9 +307,11 @@ def main(date_tm):
                 cols = [i for i in prev_forecasts if key in i]
                 prev_forecasts[cols] -= meta['unit_offset']
 
+        # split previous forecasts from the one we want to bias correct
         forecast = prev_forecasts.loc[prev_forecasts['forecast'] == date_tm]
         prev_forecasts = prev_forecasts.loc[prev_forecasts['forecast'] != date_tm]
 
+        # Find daily values (currently split into hourly)
         prev_forecasts = find_aggregate_values(prev_forecasts, date_tm)
         forecast = find_aggregate_values(forecast, date_tm)
 
@@ -319,6 +322,8 @@ def main(date_tm):
 
         forecast['day'] = forecast.apply(lambda x: (x.datetime - x.forecast).total_seconds() / (3600 * 24), axis=1)
         forecast.set_index(['stn_id', 'day'], drop=True, inplace=True)
+
+        # attach observations to forecast dates
         prev_forecasts.set_index(['stn_id', 'datetime'], inplace=True, drop=True)
         observations.set_index(['stn_id', 'datetime'], inplace=True, drop=True)
         ff = prev_forecasts.merge(observations, how='left', left_index=True, right_index=True).reset_index(drop=False)  # full_forecast
