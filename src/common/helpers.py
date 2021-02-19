@@ -69,12 +69,4 @@ def fmt_orig_fn(rt, tm, m, lev=None, var=None):
         'grib_name': var[0] if var is not None else '',
     }
     if m == 'geps':
-        return geps_format_function(kwargs, rt)
-
-
-def geps_format_function(kwargs, rt):
-    return (rt.strftime(ms.models['geps']['url'].format(**kwargs)), rt.strftime(ms.models['geps']['fn'].format(**kwargs)))
-
-
-def fmt_regrid_fn(rt, tm, m):
-    return f'{m}_regrid_{rt}_f{tm:03}.grib2'
+        return (rt.strftime(ms.models['geps']['url'].format(**kwargs)), rt.strftime(ms.models['geps']['fn'].format(**kwargs)))
