@@ -16,13 +16,28 @@ from processing import regrid_model_data, bias_correction
 from common.helpers import free_range
 
 
+def get_now():
+    """Trivial function created so that it can be mocked in testing
+
+    Returns:
+        dt: Current UTC time
+    """
+    return dt.utcnow()
+
+
 def find_run_time(args):
     if args.run is not None:
         return dt.strptime(args.run, '%Y%m%d_%H')
     else:
-        now = dt.utcnow()
-        hour = 0 if 4 <= now.hour <= 16 else 12
-        return dt(now.year, now.month, now.day, hour)
+        now = get_now()
+        if now.hour < 4:
+            now = (now - timedelta(days=1)).replace(hour=12)
+        elif now.hour <= 16:
+            now = now.replace(hour=0)
+        else:
+            now = now.replace(hour=12)
+
+        return dt(now.year, now.month, now.day, now.hour)
 
 
 def download_needed_runs(run_time):
@@ -35,19 +50,25 @@ def download_needed_runs(run_time):
 
 
 def main(args):
+    if args.process and args.download:
+        print('Process and Download cannot both be set to true.')
+        return
+
     run_time = find_run_time(args)
     if not args.process:
-        download_needed_runs(run_time)
+        print('Downloading and Regridding data and missing runs.')
+        # download_needed_runs(run_time)
     if not args.download:
+        print(f'Bias correcting {run_time}')
         bias_correction.main(run_time)
 
 
 def parse_arguments():
     parser = argparse.ArgumentParser(description='Main program for ensemble model processing.')
     parser.add_argument('-v', '--version', action='version', version=f'{VERSION} WeatherLogics 2021')
-    parser.add_argument('-r', '--run', choices=['yyyymmdd_hh'], type=str, help='Specify run to forecast.', default=None)
-    parser.add_argument('-d', '--download', help='Only download, do not process.', default=False, type=bool)
-    parser.add_argument('-p', '--process', help='Only process, do not download.', default=False, type=bool)
+    parser.add_argument('-r', '--run', type=str, help='Specify run to forecast.', default=None)
+    parser.add_argument('-d', '--download', help='Only download, do not process.', default=False, action='store_true')
+    parser.add_argument('-p', '--process', help='Only process, do not download.', default=False, action='store_true')
     return parser.parse_args()
 
 

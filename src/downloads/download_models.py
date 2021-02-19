@@ -23,14 +23,10 @@ class myThread (threading.Thread):
         threading.Thread.__init__(self)
         self.lock = threading.Lock()
         self.url = url
-        self.local_dir = gs.DIR  # ./ on mac or abs on linux
         self.cr = cr
 
     def run(self):
-        if ('nomads' in self.url['pre'] and 'sref' not in self.url['pre']):
-            sName = self.url["fname"][self.url["fname"].find('file=')+5:self.url["fname"].find('&lev')]
-        else:
-            sName = self.url['fname']
+        sName = self.url['fname']
         print(f'STARTING: {sName}')
         self.lock.acquire()
         Download(self.url['model'], self.url['pre'],
@@ -42,18 +38,13 @@ class myThread (threading.Thread):
 class Download():
 
     def __init__(self, model, pre, fname, run: dt):
-        if 'file=' in fname:
-            self.fp = f'{gs.DIR}models/{model}/{run.strftime("%Y%m%d%H")}/{fname.replace("/", "_")[fname.find("file=")+5:fname.find("&")]}'
-        else:
-            self.fp = f'{gs.DIR}models/{model}/{run.strftime("%Y%m%d%H")}/{fname.replace("/", "_")}'
-        if model == 'met_fr' and 'acc' in fname:
-            self.fp = self.fp.replace('acc_0-', '')
+        self.fp = f'{gs.DIR}models/{model}/{run.strftime("%Y%m%d%H")}/{fname.replace("/", "_")}'
         self.TIMEOUT = ms.models[model]['timeout']
         self.NUM_RETRIES = gs.MAX_RETRIES
-        self.download_model(model, pre, fname)
+        self.download_model(pre, fname)
         self.fails = []
 
-    def download_model(self, m, pre, fname):
+    def download_model(self, pre, fname):
 
         # create the url
         url = pre + fname
@@ -98,7 +89,7 @@ def make_dir(m, cr: dt):
     path.mkdir(parents=True, exist_ok=True)
 
 
-def check_downloads(model, runtime, url_list):
+def check_downloads(download_folder, expected, file_size=1000):
     """If most of the model is not downloading correctly, quit downloads early
 
     Args:
@@ -109,12 +100,10 @@ def check_downloads(model, runtime, url_list):
     Returns:
         bool: Whether or not downloads appear to be working correctly
     """
-    expected = len(url_list)
-    base = runtime.strftime(f'{gs.DIR}models/{model}/%Y%m%d%H/*')
-    files = glob(base)
+    files = glob(download_folder)
     exist = 0
     for i in files:
-        if os.stat(i).st_size > 1000:
+        if os.stat(i).st_size > file_size:
             exist += 1
     if exist < expected * (2/3):
         print('not working')
@@ -123,7 +112,6 @@ def check_downloads(model, runtime, url_list):
 
 
 def main(m, date_tm, times=None):
-    org_tm = date_tm
     MAX_DOWNLOADS = gs.MAX_DOWNLOADS
     # MAX_DOWNLOADS = 1
     url_list = []
@@ -145,39 +133,27 @@ def main(m, date_tm, times=None):
             if os.path.isfile(regrid_file):
                 continue
 
-            if ms.models[m]['onegrib']:
-                res = h.fmt_orig_fn(date_tm, t, m)
-                url_list.append({'model': m, 'pre': res[0], 'fname': res[1]})
-            else:
-                for v in vs.metvars:
-                    if '_std' in v:
-                        continue
-                    if((t > 0) or (t == 0 and vs.metvars[v]['acc'] is False)):
-
-                        # if there is only surface data
-                        res = h.fmt_orig_fn(date_tm, t, m, var=vs.metvars[v]['mod'][m])
-                        if(res is not None):
-                            url_list.append({'model': m, 'pre': res[0],
-                                            'fname': res[1]})
+            for v in vs.metvars:
+                if((t > 0) or (t == 0 and vs.metvars[v]['acc'] is False)):
+                    # if there is only surface data
+                    res = h.fmt_orig_fn(date_tm, t, m, var=vs.metvars[v]['mod'][m])
+                    if(res is not None):
+                        url_list.append({'model': m, 'pre': res[0],
+                                        'fname': res[1]})
 
         # start downloads in batches
         for idx, i in enumerate(range(0, len(url_list), MAX_DOWNLOADS)):
             increment = MAX_DOWNLOADS
-            threads = []
-            if(i + MAX_DOWNLOADS > len(url_list)):
-                increment = len(url_list) - i
-            threads = [myThread(url_list[j], date_tm)
-                       for j in range(i, i + increment)]
+            threads = [myThread(url, date_tm) for url in url_list[i:i+MAX_DOWNLOADS]]
             for i in threads:
                 i.start()
             for t in threads:
                 t.join()
             if idx == 0:
-                working = check_downloads(m, date_tm, url_list[:MAX_DOWNLOADS])
-                if not working:
+                download_folder = date_tm.strftime(f'{gs.DIR}models/{m}/%Y%m%d%H/*')
+                if not check_downloads(download_folder, MAX_DOWNLOADS):
                     break
 
-        date_tm = org_tm
         print(f'{m.upper()} download complete!')
 
     else:

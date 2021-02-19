@@ -40,19 +40,28 @@ def ensemble_regrid(date_tm, model):
     """
     stations = get_stations()
     station_locations = convert_location_to_wgrib2(stations)
+
     folder = date_tm.strftime(f'{gs.DIR}models/{model}/%Y%m%d%H/')
     for hour in ms.models[model]['times']:
         regrid_file = date_tm.strftime(f'{gs.DIR}models/{model}/%Y%m%d%H/ens_{model}_{hour:03}.grib2')
         if os.path.isfile(regrid_file):
             continue
 
+        # concatenate all hourly variable files into one grid
         cmd = f'cat {folder}*_P{hour:03}_*.grib2 > {folder}cat_{model}_{hour:03}.grib2'
         subprocess.call(cmd, shell=True)
+
+        # regrid cat file to station locations
         cmd = f'{gs.WGRIB2} {folder}cat_{model}_{hour:03}.grib2 -new_grid location {station_locations} 0 {folder}regrid_{model}_{hour:03}.grib2'
         subprocess.call(cmd, shell=True)
+
+        # ensemble process grid to final ens_grid
         cmd = f'{gs.WGRIB2} {folder}regrid_{model}_{hour:03}.grib2 -ens_processing {folder}ens_{model}_{hour:03}.grib2 0'
         subprocess.call(cmd, shell=True)
-        files = glob(f'{folder}*')
+
+        # delete temporary files and ensemble files that are too small
+        files = glob(date_tm.strftime(f'{folder}*{hour:03}_allmbrs.grib2'))
+        files += glob(f'{folder}*{hour:03}.grib2')
         ensemble_files = [i for i in files if 'ens_' in i]
         files = [i for i in files if 'ens_' not in i]
         for i in files:

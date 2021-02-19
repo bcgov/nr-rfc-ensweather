@@ -7,10 +7,12 @@ if base not in sys.path:
     sys.path.append(base)
 
 import pandas as pd
+import numpy as np
 from pandas.testing import assert_frame_equal
 
 from src.processing import bias_correction as bc
 import src.config.variable_settings as vs
+from src.config import general_settings as gs
 
 
 @pytest.mark.integration
@@ -25,6 +27,75 @@ class Test_Unit:
 
     def test_true(self):
         assert True
+
+    def test_get_message(self, monkeypatch):
+        def fake_pipe(cmd):
+            return '''
+            \n0:APCP:surface:ens max:nothing
+            \n1:APCP:ens mean:nothing
+            \n2:APCP:10%:nothing
+            \n30:APCP:25%:nothing
+            \n4:APCP:75%:nothing
+            \n5:TMAX:ens min:nothing
+            \n6:TMAX:ens mean:nothing
+            \n7:TMAX:75%:nothing
+            \n8:TMAX:25%:nothing
+            \n9:TMIN:ens min:nothing
+            \n10:TMIN:ens mean:nothing
+            \n11:TMIN:75%:nothing
+            \n14:TMIN:25%:nothing
+            '''
+
+        for key, meta in vs.metvars.items():
+            vs.metvars[key]['ensemble_percentiles'] = [25, 75]
+        monkeypatch.setattr(bc, 'open_subprocess_pipe', fake_pipe)
+        names, messages = bc.get_messages('path', 'geps')
+        exp_names = ['precip_mean',
+                     'precip_lower_percentile',
+                     'precip_upper_percentile',
+                     't_max_mean',
+                     't_max_upper_percentile',
+                     't_max_lower_percentile',
+                     't_min_mean',
+                     't_min_upper_percentile',
+                     't_min_lower_percentile',
+                     'lon',
+                     'lat']
+        exp_messages = [1, 30, 4, 6, 7, 8, 10, 11, 14, 3, 12]
+        assert names == exp_names
+        assert messages == exp_messages
+
+    def test_get_forecast(self, monkeypatch):
+        def access_grib(path, message):
+            if message == 1:
+                return np.array([1, 2, 3]).reshape(-1, )
+            elif message == 2:
+                return np.array([10, 20, 30]).reshape(-1, )
+            elif message == 3:
+                return np.array([100, 200, 300]).reshape(-1, )
+
+        def get_messages(path, model):
+            return ['precip_mean', 't_max_mean', 't_min_mean'], [1, 2, 3]
+
+        def check_file(path):
+            if path.endswith('006.grib2') or path.endswith('012.grib2'):
+                return True
+            return False
+
+        monkeypatch.setattr(bc, 'access_grib', access_grib)
+        monkeypatch.setattr(bc, 'get_messages', get_messages)
+        monkeypatch.setattr(bc, 'check_file', check_file)
+
+        data = bc.get_forecast(dt(2020, 1, 1, 0), 'geps').reset_index(drop=True)
+        exp = pd.DataFrame({
+            'precip_mean': [1, 2, 3, 1, 2, 3],
+            't_max_mean': [10, 20, 30, 10, 20, 30],
+            't_min_mean': [100, 200, 300, 100, 200, 300],
+            'forecast': [dt(2020, 1, 1, 0)] * 6,
+            'datetime': [dt(2020, 1, 1, 6)] * 3 + [dt(2020, 1, 1, 12)] * 3,
+        })
+        assert_frame_equal(data, exp, check_like=True)
+
 
     def test_calculate_biases(self):
         df = pd.DataFrame({

@@ -28,6 +28,12 @@ class Test_Pre_Commit:
     def test_true(self):
         assert True
 
+    def test_general(self):
+        # Ensure that settings changed for the purposes of testing do not get committed
+        assert gs.MAX_HOURS > 1000
+        assert gs.MAX_DOWNLOADS == 10
+        assert gs.MAX_RETRIES == 3
+
 
 if __name__ == '__main__':
     pytest.main()

@@ -37,20 +37,23 @@ def get_observations(date_tm):
     return df
 
 
-def get_messages(date_tm, hour, model):
+def open_subprocess_pipe(cmd):
+    p = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE).communicate()
+    return p[0].decode('utf-8')
+
+
+def get_messages(path, model):
     """Find the message numbers for the grib files that we want. (ens mean, variable percentiles)
 
     Args:
-        date_tm (dt): Time of forecast
-        hour (int): Hour of the forecast grib file
+        path (int): File path for the grib we want messages for
         model (str): Name of the meteorological model grib
 
     Returns:
         tuple: Correlated lists of names and grib message numbers
     """
-    cmd = date_tm.strftime(f'{gs.WGRIB2} {gs.DIR}models/{model}/%Y%m%d%H/ens_{model}_{hour:03}.grib2 -s -n')
-    p = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE).communicate()
-    res = p[0].decode('utf-8')
+    cmd = f'{gs.WGRIB2} {path} -s -n'
+    res = open_subprocess_pipe(cmd)
     res = (res.split('\n'))[:-1]
     names = []
     messages = []
@@ -71,6 +74,15 @@ def get_messages(date_tm, hour, model):
     return names, messages
 
 
+def access_grib(path, message):
+    with pygrib.open(path) as f:
+        return f.message(message)['values']
+
+
+def check_file(path):
+    return os.path.isfile(path)
+
+
 def get_forecast(forecast_time, model):
     """Open and load all old forecast data to be used for bias correction
 
@@ -85,11 +97,14 @@ def get_forecast(forecast_time, model):
     for hour in gs.ALL_TIMES:
         hour_data = {}
         try:
-            names, messages = get_messages(forecast_time, hour, model)
-            for name, message in zip(names, messages):
-                with pygrib.open(forecast_time.strftime(f'{gs.DIR}models/{model}/%Y%m%d%H/ens_{model}_{hour:03}.grib2')) as f:
-                    hour_data[name] = f.message(message)['values']
+            path = forecast_time.strftime(f'{gs.DIR}models/{model}/%Y%m%d%H/ens_{model}_{hour:03}.grib2')
+            if check_file(path):
+                names, messages = get_messages(path, model)
+                for name, message in zip(names, messages):
+                    hour_data[name] = access_grib(path, message)
         except Exception as _:
+            raise
+        if not hour_data:
             continue
         hour_data['forecast'] = [forecast_time] * hour_data['t_max_mean'].shape[0]
         hour_data['datetime'] = [forecast_time + timedelta(hours=hour)] * hour_data['t_max_mean'].shape[0]
