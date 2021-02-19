@@ -1,5 +1,6 @@
 import argparse
 import sys
+import shutil
 from datetime import datetime as dt, timedelta
 from glob import glob
 
@@ -9,7 +10,7 @@ if base not in sys.path:
 if not base:
     base = './'
 
-from config.general_settings import VERSION, BIAS_DAYS
+from config.general_settings import VERSION, BIAS_DAYS, DIR
 from config.model_settings import models
 from downloads import download_models
 from processing import regrid_model_data, bias_correction
@@ -49,12 +50,23 @@ def download_needed_runs(run_time):
             regrid_model_data.main(tm, model)
 
 
+def delete_old_folders():
+    now = get_now()
+    folders = glob(f'{DIR}models/*/*')
+    for folder in folders:
+        base_name = folder.split('/')[-1]
+        tm = dt.strptime(base_name, '%Y%m%d%H')
+        if now - timedelta(days=BIAS_DAYS*2) > tm:
+            shutil.rmtree(folder)
+
+
 def main(args):
     if args.process and args.download:
         print('Process and Download cannot both be set to true.')
         return
-
+    delete_old_folders()
     run_time = find_run_time(args)
+
     if not args.process:
         print('Downloading and Regridding data and missing runs.')
         # download_needed_runs(run_time)
