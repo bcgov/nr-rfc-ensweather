@@ -143,7 +143,6 @@ def main(m, date_tm, times=None):
 
         # start downloads in batches
         for idx, i in enumerate(range(0, len(url_list), MAX_DOWNLOADS)):
-            increment = MAX_DOWNLOADS
             threads = [myThread(url, date_tm) for url in url_list[i:i+MAX_DOWNLOADS]]
             for i in threads:
                 i.start()
