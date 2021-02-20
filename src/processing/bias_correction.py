@@ -115,6 +115,15 @@ def get_forecast(forecast_time, model):
     return data
 
 
+def adjust_bias_to_count(biases, counts, correction, bias_key):
+    df = biases.merge(counts, left_index=True, right_index=True, suffixes=['', '_count'])
+    if correction == 'ratio':
+        df[bias_key] = df[bias_key] * df[f'{bias_key}_count'] + (1 - df[f'{bias_key}_count'])
+    elif correction == 'difference':
+        df[bias_key] = df[bias_key] * df[f'{bias_key}_count']
+    return df
+
+
 def calculate_biases(key, meta, ff):
     """Calculate the historical forecast bias for given variables
 
@@ -132,15 +141,21 @@ def calculate_biases(key, meta, ff):
     if meta['correction'] == 'ratio':
         cap = 5
         biases = ff[['stn_id', 'forecast_day', ob_key, mean_key]].groupby(['stn_id', 'forecast_day']).sum()
+        counts = ff[['stn_id', 'forecast_day', mean_key]].groupby(['stn_id', 'forecast_day']).count()
+        counts[bias_key] = counts[mean_key] / gs.BIAS_DAYS
         biases[bias_key] = biases[mean_key] / biases[ob_key]
         biases.loc[biases[mean_key] == biases[ob_key], bias_key] = 1
         biases.drop(columns=[mean_key, ob_key], inplace=True)
         biases.loc[biases[bias_key] > cap, bias_key] = cap
         biases.loc[biases[bias_key] < 1 / cap, bias_key] = 1 / cap
         biases.loc[biases[bias_key] != biases[bias_key], bias_key] = 1
+        biases = adjust_bias_to_count(biases, counts, 'ratio', bias_key)
     elif meta['correction'] == 'difference':
         ff[bias_key] = ff[mean_key] - ff[ob_key]
         biases = ff[['stn_id', 'forecast_day', bias_key]].groupby(['stn_id', 'forecast_day']).mean()
+        counts = ff[['stn_id', 'forecast_day', bias_key]].groupby(['stn_id', 'forecast_day']).count()
+        counts[bias_key] = counts[bias_key] / gs.BIAS_DAYS
+        biases = adjust_bias_to_count(biases, counts, 'difference', bias_key)
 
     return biases
 
