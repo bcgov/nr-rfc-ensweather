@@ -10,7 +10,7 @@ if base not in sys.path:
 if not base:
     base = './'
 
-from config.general_settings import VERSION, BIAS_DAYS, DIR
+from config.general_settings import VERSION, BIAS_DAYS, DIR, ALL_TIMES
 from config.model_settings import models
 from downloads import download_models
 from processing import regrid_model_data, bias_correction
@@ -56,7 +56,7 @@ def delete_old_folders():
     for folder in folders:
         base_name = folder.split('/')[-1]
         tm = dt.strptime(base_name, '%Y%m%d%H')
-        if now - timedelta(days=BIAS_DAYS*2) > tm:
+        if now - timedelta(days=BIAS_DAYS+2, hours=max(ALL_TIMES)) > tm:
             shutil.rmtree(folder)
 
 
@@ -69,7 +69,7 @@ def main(args):
 
     if not args.process:
         print('Downloading and Regridding data and missing runs.')
-        # download_needed_runs(run_time)
+        download_needed_runs(run_time)
     if not args.download:
         print(f'Bias correcting {run_time}')
         bias_correction.main(run_time)
