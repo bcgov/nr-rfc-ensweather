@@ -153,8 +153,8 @@ def calculate_biases(key, meta, ff):
         cap = 5
         biases = ff[['stn_id', 'forecast_day', ob_key, mean_key]].groupby(['stn_id', 'forecast_day']).sum()
         counts = ff[['stn_id', 'forecast_day', mean_key]].groupby(['stn_id', 'forecast_day']).count()
-        counts.loc[counts[mean_key] > 1, mean_key] = 1
         counts[bias_key] = counts[mean_key] / gs.BIAS_DAYS
+        counts.loc[counts[mean_key] > 1, mean_key] = 1
         biases[bias_key] = biases[mean_key] / biases[ob_key]
         biases.loc[biases[mean_key] == biases[ob_key], bias_key] = 1
         biases.drop(columns=[mean_key, ob_key], inplace=True)
@@ -166,8 +166,8 @@ def calculate_biases(key, meta, ff):
         ff[bias_key] = ff[mean_key] - ff[ob_key]
         biases = ff[['stn_id', 'forecast_day', bias_key]].groupby(['stn_id', 'forecast_day']).mean()
         counts = ff[['stn_id', 'forecast_day', bias_key]].groupby(['stn_id', 'forecast_day']).count()
-        counts.loc[counts[mean_key] > 1, mean_key] = 1  # We don't want to accidentally overcorrect due to miscalculation
         counts[bias_key] = counts[bias_key] / gs.BIAS_DAYS
+        counts.loc[counts[bias_key] > 1, bias_key] = 1  # We don't want to accidentally overcorrect due to miscalculation
         biases = adjust_bias_to_count(biases, counts, 'difference', bias_key)
 
     return biases
