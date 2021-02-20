@@ -1,4 +1,4 @@
-from datetime import datetime as dt
+from datetime import datetime as dt, timedelta
 import pytest
 import sys
 import os
@@ -86,13 +86,47 @@ class Test_Unit:
         monkeypatch.setattr(bc, 'get_messages', get_messages)
         monkeypatch.setattr(bc, 'check_file', check_file)
 
-        data = bc.get_forecast(dt(2020, 1, 1, 0), 'geps').reset_index(drop=True)
+        data = bc.get_forecast(dt(2020, 1, 1, 0), 'geps', dt(2020, 1, 2, 0)).reset_index(drop=True)
         exp = pd.DataFrame({
             'precip_mean': [1, 2, 3, 1, 2, 3],
             't_max_mean': [10, 20, 30, 10, 20, 30],
             't_min_mean': [100, 200, 300, 100, 200, 300],
             'forecast': [dt(2020, 1, 1, 0)] * 6,
             'datetime': [dt(2020, 1, 1, 6)] * 3 + [dt(2020, 1, 1, 12)] * 3,
+        })
+        assert_frame_equal(data, exp, check_like=True)
+
+    def test_get_forecast_old_forecast(self, monkeypatch):
+        # Pulling from an old forecast file, we only want the last few hours used in correction
+        def access_grib(path, message):
+            if message == 1:
+                return np.array([1]).reshape(-1, )
+            elif message == 2:
+                return np.array([2]).reshape(-1, )
+            elif message == 3:
+                return np.array([3]).reshape(-1, )
+
+        def get_messages(path, model):
+            return ['precip_mean', 't_max_mean', 't_min_mean'], [1, 2, 3]
+
+        def check_file(path):
+            return True
+
+        monkeypatch.setattr(bc, 'access_grib', access_grib)
+        monkeypatch.setattr(bc, 'get_messages', get_messages)
+        monkeypatch.setattr(bc, 'check_file', check_file)
+        monkeypatch.setattr(bc.gs, 'BIAS_DAYS', 10)
+        monkeypatch.setattr(bc.gs, 'ALL_TIMES', [i for i in gs.ALL_TIMES if i <= 240])
+
+        data = bc.get_forecast(dt(2020, 1, 1, 0), 'geps', dt(2020, 1, 20, 0)).reset_index(drop=True)
+
+        oldest = dt(2020, 1, 9, 6)
+        exp = pd.DataFrame({
+            'precip_mean': [1] * 8,
+            't_max_mean': [2] * 8,
+            't_min_mean': [3] * 8,
+            'forecast': [dt(2020, 1, 1, 0)] * 8,
+            'datetime': [oldest + timedelta(hours=i*6) for i in range(8)],
         })
         assert_frame_equal(data, exp, check_like=True)
 

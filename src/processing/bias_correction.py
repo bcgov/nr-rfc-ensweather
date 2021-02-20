@@ -83,18 +83,24 @@ def check_file(path):
     return os.path.isfile(path)
 
 
-def get_forecast(forecast_time, model):
+def get_forecast(forecast_time, model, new_forecast):
     """Open and load all old forecast data to be used for bias correction
 
     Args:
         forecast_time (dt): Time of the forecast
         model (str): Name of the meteorological model forecast
+        new_forecast(str): Time of the new forecast being created
 
     Returns:
         pd.DataFrame: Sequential data of all recent forecasts
     """
     dfs = []
     for hour in gs.ALL_TIMES:
+        if forecast_time + timedelta(hours=hour) < new_forecast - timedelta(days=gs.BIAS_DAYS, hours=18):
+            continue  # We don't want to use extra bias days farther back then we need
+                      # 6 hour bias from 20 days ago isn't needed
+                      # 12 day bias from 20 days ago is needed
+                      # We include the extra 18 hours to ensure we have full days to aggregate
         hour_data = {}
         try:
             path = forecast_time.strftime(f'{gs.DIR}models/{model}/%Y%m%d%H/ens_{model}_{hour:03}.grib2')
@@ -103,7 +109,7 @@ def get_forecast(forecast_time, model):
                 for name, message in zip(names, messages):
                     hour_data[name] = access_grib(path, message)
         except Exception as _:
-            raise
+            continue
         if not hour_data:
             continue
         hour_data['forecast'] = [forecast_time] * hour_data['t_max_mean'].shape[0]
@@ -142,6 +148,7 @@ def calculate_biases(key, meta, ff):
         cap = 5
         biases = ff[['stn_id', 'forecast_day', ob_key, mean_key]].groupby(['stn_id', 'forecast_day']).sum()
         counts = ff[['stn_id', 'forecast_day', mean_key]].groupby(['stn_id', 'forecast_day']).count()
+        counts.loc[counts[mean_key] > 1, mean_key] = 1
         counts[bias_key] = counts[mean_key] / gs.BIAS_DAYS
         biases[bias_key] = biases[mean_key] / biases[ob_key]
         biases.loc[biases[mean_key] == biases[ob_key], bias_key] = 1
@@ -154,6 +161,7 @@ def calculate_biases(key, meta, ff):
         ff[bias_key] = ff[mean_key] - ff[ob_key]
         biases = ff[['stn_id', 'forecast_day', bias_key]].groupby(['stn_id', 'forecast_day']).mean()
         counts = ff[['stn_id', 'forecast_day', bias_key]].groupby(['stn_id', 'forecast_day']).count()
+        counts.loc[counts[mean_key] > 1, mean_key] = 1  # We don't want to accidentally overcorrect due to miscalculation
         counts[bias_key] = counts[bias_key] / gs.BIAS_DAYS
         biases = adjust_bias_to_count(biases, counts, 'difference', bias_key)
 
@@ -260,7 +268,7 @@ def collect_forecasts(date_tm, days_back, model):
     """
     forecasts = []
     for forecast_time in free_range(date_tm, date_tm - timedelta(days=days_back), timedelta(days=-1)):
-        forecast = get_forecast(forecast_time, model)
+        forecast = get_forecast(forecast_time, model, date_tm)
         if forecast is not None:
             forecasts.append(forecast)
     prev_forecasts = pd.concat(forecasts)
