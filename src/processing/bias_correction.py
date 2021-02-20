@@ -2,8 +2,13 @@ from datetime import datetime as dt, timedelta
 import os
 import subprocess
 import sys
+import platform
+if platform.system() == 'Windows':
+    splitter = '\\'
+else:
+    splitter = '/'
 
-base = '/'.join(__file__.split('/')[:-2])
+base = splitter.join(__file__.split(splitter)[:-2])
 if base not in sys.path:
     sys.path.append(base)
 if not base:

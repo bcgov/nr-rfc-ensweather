@@ -1,7 +1,13 @@
 import pytest
 import sys
 import os
-base = '/'.join(__file__.split('/')[:-3])
+import platform
+if platform.system() == 'Windows':
+    splitter = '\\'
+else:
+    splitter = '/'
+
+base = splitter.join(__file__.split(splitter)[:-3])
 if base not in sys.path:
     sys.path.append(base)
 

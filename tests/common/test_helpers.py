@@ -2,8 +2,13 @@ import pytest
 import sys
 import os
 from datetime import datetime as dt, timedelta
+import platform
+if platform.system() == 'Windows':
+    splitter = '\\'
+else:
+    splitter = '/'
 
-base = '/'.join(__file__.split('/')[:-3])
+base = splitter.join(__file__.split(splitter)[:-3])
 if base not in sys.path:
     sys.path.append(base)
 

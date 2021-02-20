@@ -4,8 +4,13 @@ import sys
 from glob import glob
 from time import time
 from datetime import datetime as dt, timedelta
+import platform
+if platform.system() == 'Windows':
+    splitter = '\\'
+else:
+    splitter = '/'
 
-base = '/'.join(__file__.split('/')[:-2])
+base = splitter.join(__file__.split(splitter)[:-2])
 if base not in sys.path:
     sys.path.append(base)
 if not base:
@@ -31,14 +36,13 @@ def convert_location_to_wgrib2(stations):
     return ':'.join(locs)
 
 
-def ensemble_regrid(date_tm, model):
+def ensemble_regrid(date_tm, model, stations):
     """Regrid ensemble model from lat/lon grid to ensemble processed station locations
 
     Args:
         date_tm (dt): Time of forecast
         model (str): Model name
     """
-    stations = get_stations()
     station_locations = convert_location_to_wgrib2(stations)
 
     folder = date_tm.strftime(f'{gs.DIR}models/{model}/%Y%m%d%H/')
@@ -73,7 +77,8 @@ def ensemble_regrid(date_tm, model):
 
 
 def main(date_tm, model):
-    ensemble_regrid(date_tm, model)
+    stations = get_stations()
+    ensemble_regrid(date_tm, model, stations)
 
 
 if __name__ == '__main__':

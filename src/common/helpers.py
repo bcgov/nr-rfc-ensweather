@@ -5,7 +5,13 @@ import sys
 import numpy as np
 import pandas as pd
 
-base = '/'.join(__file__.split('/')[:-2])
+import platform
+if platform.system() == 'Windows':
+    splitter = '\\'
+else:
+    splitter = '/'
+
+base = splitter.join(__file__.split(splitter)[:-2])
 if base not in sys.path:
     sys.path.append(base)
 if not base:

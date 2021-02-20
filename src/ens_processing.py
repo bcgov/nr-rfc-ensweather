@@ -4,13 +4,19 @@ import shutil
 from datetime import datetime as dt, timedelta
 from glob import glob
 
-base = '/'.join(__file__.split('/')[:-1])
+import platform
+if platform.system() == 'Windows':
+    splitter = '\\'
+else:
+    splitter = '/'
+
+base = splitter.join(__file__.split(splitter)[:-1])
 if base not in sys.path:
     sys.path.append(base)
 if not base:
     base = './'
 
-from config.general_settings import VERSION, BIAS_DAYS, DIR, ALL_TIMES
+from config.general_settings import VERSION, BIAS_DAYS, DIR, ALL_TIMES, FILE_SPLITTER
 from config.model_settings import models
 from downloads import download_models
 from processing import regrid_model_data, bias_correction
@@ -54,7 +60,7 @@ def delete_old_folders():
     now = get_now()
     folders = glob(f'{DIR}models/*/*')
     for folder in folders:
-        base_name = folder.split('/')[-1]
+        base_name = folder.split(FILE_SPLITTER)[-1]
         tm = dt.strptime(base_name, '%Y%m%d%H')
         if now - timedelta(days=BIAS_DAYS+2, hours=max(ALL_TIMES)) > tm:
             shutil.rmtree(folder)

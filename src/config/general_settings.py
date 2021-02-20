@@ -5,10 +5,17 @@ MAX_HOURS = 9999
 DIR = '/Users/paulpries/Documents/bc_forecasting/'
 WGRIB2 = '/opt/local/bin/wgrib2'
 
+
+import platform
+if platform.system() == 'Windows':
+    FILE_SPLITTER = '\\'
+else:
+    FILE_SPLITTER = '/'
+
 # NON USER SETTINGS
 VERSION = 0.1
 
-BIAS_DAYS = 15
+BIAS_DAYS = 30
 
 TM_STGS = {
     'min': 6,
@@ -23,7 +30,7 @@ DM = {
     'lon1': -113,
 }
 
-ARCHIVED_RUN = dt(2021, 2, 11, 0)
+ARCHIVED_RUN = dt(2021, 2, 19, 0)
 
 MAX_RETRIES = 3
 MAX_DOWNLOADS = 10
