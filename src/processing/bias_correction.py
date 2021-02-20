@@ -300,6 +300,9 @@ def find_aggregate_values(prev_forecasts, date_tm):
         for idx in range(max(gs.ALL_TIMES) // 24):
             df.loc[(df['datetime'] > df['forecast'] + timedelta(hours=start_hour)) &
                    (df['datetime'] <= df['forecast'] + timedelta(hours=end_hour)), 'agg_day'] = idx
+            values = df.loc[df['agg_day'] == idx].shape[0]
+            if values < meta['expected_values']:
+                df.loc[df['agg_day'] == idx, 'agg_day'] = -1
             start_hour += 24
             end_hour += 24
         df.drop(df.loc[df['agg_day'] == -1].index, inplace=True)

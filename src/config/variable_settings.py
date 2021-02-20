@@ -8,6 +8,7 @@ metvars = {
         'ensemble_percentiles': [25, 75],
         'utc_time_start': 6,  # 6 hours after 0z run
         'time_range_length': 24,  # 24 hour sum
+        'expected_values': 4,
         'aggregate_function': np.sum,
         'unit_offset': 0,
         'mult': None,
@@ -21,6 +22,7 @@ metvars = {
         'ensemble_percentiles': [25, 75],
         'utc_time_start': 12,  # 12 hours after 0z run
         'time_range_length': 12,  # morning to evening max
+        'expected_values': 2,
         'aggregate_function': np.max,
         'unit_offset': 273.15,
         'units': 'celsius',
@@ -33,6 +35,7 @@ metvars = {
         'ensemble_percentiles': [25, 75],
         'utc_time_start': 24,  # 24 hours after 0z run
         'time_range_length': 12, # evening to next morning min
+        'expected_values': 2,
         'aggregate_function': np.min,
         'unit_offset': 273.15,
         'units': 'celsius',
