@@ -238,6 +238,54 @@ class Test_Unit:
         ret = bc.attach_station_ids(forecasts, stations)
         assert_frame_equal(ret, exp, check_like=True)
 
+    def test_attach_station_ids_multiples(self):
+        forecasts = pd.DataFrame({
+            'lon': [-112, -114, -115, -114, -115, -114],
+            'lat': [50, 51, 60, 51, 60, 51],
+            'forecast': [10, 20, 30, 1, 2, 3],
+            'datetime': [1, 2, 3, 4, 5, 6],
+            'example_var': [10, 15, 20, 1, 2, 3],
+        })
+        stations = pd.DataFrame({
+            'lon': [-114, -115, -112],
+            'lat': [51, 60, 50],
+            'stn_id': ['A', 'B', 'C'],
+        })
+        exp = pd.DataFrame({
+            'lon': [-112, -114, -115, -114, -115, -114],
+            'lat': [50, 51, 60, 51, 60, 51],
+            'forecast': [10, 20, 30, 1, 2, 3],
+            'datetime': [1, 2, 3, 4, 5, 6],
+            'example_var': [10, 15, 20, 1, 2, 3],
+            'stn_id': ['C', 'A', 'B', 'A', 'B', 'A'],
+        })
+        ret = bc.attach_station_ids(forecasts, stations)
+        assert_frame_equal(ret, exp, check_like=True)
+
+    def test_attach_station_ids_not_identical(self):
+        forecasts = pd.DataFrame({
+            'lon': [-112, -114.1, -115, -114.1, -115, -114.1],
+            'lat': [50.2, 51, 60.2, 51, 60.2, 51],
+            'forecast': [10, 20, 30, 1, 2, 3],
+            'datetime': [1, 2, 3, 4, 5, 6],
+            'example_var': [10, 15, 20, 1, 2, 3],
+        })
+        stations = pd.DataFrame({
+            'lon': [-114, -115.2, -112.1],
+            'lat': [51.1, 60.2, 49.9],
+            'stn_id': ['A', 'B', 'C'],
+        })
+        exp = pd.DataFrame({
+            'lon': [-112, -114.1, -115, -114.1, -115, -114.1],
+            'lat': [50.2, 51, 60.2, 51, 60.2, 51],
+            'forecast': [10, 20, 30, 1, 2, 3],
+            'datetime': [1, 2, 3, 4, 5, 6],
+            'example_var': [10, 15, 20, 1, 2, 3],
+            'stn_id': ['C', 'A', 'B', 'A', 'B', 'A'],
+        })
+        ret = bc.attach_station_ids(forecasts, stations)
+        assert_frame_equal(ret, exp, check_like=True)
+
     def test_correct_data(self):
         forecast = pd.DataFrame({
             't_max_mean': [10, 20, 30],

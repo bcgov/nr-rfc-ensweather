@@ -14,6 +14,7 @@ if base not in sys.path:
 if not base:
     base = './'
 
+import numpy as np
 import pandas as pd
 import pygrib
 
@@ -206,12 +207,16 @@ def attach_station_ids(forecasts, stations):
     Returns:
         pd.DataFrame: Forecast data with station ids attached
     """
-    forecasts.loc[forecasts['lon'] > 0, 'lon'] -= 360
-    forecasts[['lat', 'lon']] = forecasts[['lat', 'lon']].round(3)
-    forecasts.set_index(['lat', 'lon'], inplace=True, drop=True)
-    stations[['lat', 'lon']] = stations[['lat', 'lon']].round(3)
-    stations.set_index(['lat', 'lon'], inplace=True, drop=True)
-    forecasts = forecasts.merge(stations, left_index=True, right_index=True, how='left').reset_index(drop=False)
+    forecasts['stn_id'] = ''
+    coordinates = forecasts[['lat', 'lon']].values
+    for stn_id, lat, lon in stations[['stn_id', 'lat', 'lon']].values:
+        point = np.array([lat, lon])
+        dist_2 = np.sum((coordinates-point)**2, axis=1)
+        point_index = np.argmin(dist_2)
+        nearest_row = coordinates[point_index]
+        nearest_lat = nearest_row[0]
+        nearest_lon = nearest_row[1]
+        forecasts.loc[(forecasts['lat'] == nearest_lat) & (forecasts['lon'] == nearest_lon), 'stn_id'] = stn_id
     return forecasts.drop_duplicates(['lat', 'lon', 'stn_id', 'forecast', 'datetime']).reset_index(drop=True)
 
 
