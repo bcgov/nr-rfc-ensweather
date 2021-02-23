@@ -234,8 +234,88 @@ class Test_Unit:
             'datetime': [1, 2, 3],
             'example_var': [10, 15, 20],
             'stn_id': ['C', 'A', 'B'],
+        }).sort_values(['stn_id', 'lat', 'lon']).reset_index(drop=True)
+        ret = bc.attach_station_ids(forecasts, stations).sort_values(['stn_id', 'lat', 'lon']).reset_index(drop=True)
+        assert_frame_equal(ret, exp, check_like=True)
+
+    def test_attach_station_ids_new_station(self):
+        forecasts = pd.DataFrame({
+            'lon': [-112, -114, -112, -114, -115],
+            'lat': [50, 51, 50, 51, 60],
+            'forecast': [10, 10, 20, 20, 20],
+            'datetime': [1, 1, 2, 2, 2],
+            'example_var': [10, 20, 30, 40, 50],
         })
-        ret = bc.attach_station_ids(forecasts, stations)
+        stations = pd.DataFrame({
+            'lon': [-114, -115, -112],
+            'lat': [51, 60, 50],
+            'stn_id': ['A', 'B', 'C'],
+        })
+        exp = pd.DataFrame({
+            'lon': [-112, -114, -112, -114, -115],
+            'lat': [50, 51, 50, 51, 60],
+            'forecast': [10, 10, 20, 20, 20],
+            'datetime': [1, 1, 2, 2, 2],
+            'example_var': [10, 20, 30, 40, 50],
+            'stn_id': ['C', 'A', 'C', 'A', 'B']
+        }).sort_values(['stn_id', 'lat', 'lon']).reset_index(drop=True)
+        ret = bc.attach_station_ids(forecasts, stations).sort_values(['stn_id', 'lat', 'lon']).reset_index(drop=True)
+        assert_frame_equal(ret, exp, check_like=True)
+
+    def test_attach_station_ids_new_station_no_old_forecasts(self):
+        # If a new station is added that does not forecast data associated with it,
+        # It will borrow the forecast data from the nearest forecasted point.
+        # This borrowing should not happen for the current forecast as the most recent download
+        # will know about the new forecast and interpolate to that point.
+        # Old forecasts will not have this data, however, the result should be an unaffected
+        # current forecast, unless if there is observational data present.
+        # Future runs will have at least one forecast with the current station available and
+        # will behave as the test (test_attach_station_ids_new_station)
+        forecasts = pd.DataFrame({
+            'lon': [-112, -114, -112, -114],
+            'lat': [50, 51, 50, 51],
+            'forecast': [10, 10, 20, 20],
+            'datetime': [1, 1, 2, 2],
+            'example_var': [10, 20, 30, 40],
+        })
+        stations = pd.DataFrame({
+            'lon': [-114, -115, -112],
+            'lat': [51, 60, 50],
+            'stn_id': ['A', 'B', 'C'],
+        })
+        exp = pd.DataFrame({
+            'lon': [-112, -114, -112, -114, -114, -114],
+            'lat': [50, 51, 50, 51, 51, 51],
+            'forecast': [10, 10, 20, 20, 10, 20],
+            'datetime': [1, 1, 2, 2, 1, 2],
+            'example_var': [10, 20, 30, 40, 20, 40],
+            'stn_id': ['C', 'A', 'C', 'A', 'B', 'B']
+        }).sort_values(['stn_id', 'lat', 'lon']).reset_index(drop=True)
+        ret = bc.attach_station_ids(forecasts, stations).sort_values(['stn_id', 'lat', 'lon']).reset_index(drop=True)
+        assert_frame_equal(ret, exp, check_like=True)
+
+    def test_attach_station_ids_remove_station(self):
+        forecasts = pd.DataFrame({
+            'lon': [-112, -114, -112, -114, -115],
+            'lat': [50, 51, 50, 51, 60],
+            'forecast': [10, 10, 20, 20, 20],
+            'datetime': [1, 1, 2, 2, 2],
+            'example_var': [10, 20, 30, 40, 50],
+        })
+        stations = pd.DataFrame({
+            'lon': [-114, -112],
+            'lat': [51, 50],
+            'stn_id': ['A', 'C'],
+        })
+        exp = pd.DataFrame({
+            'lon': [-112, -114, -112, -114],
+            'lat': [50, 51, 50, 51],
+            'forecast': [10, 10, 20, 20],
+            'datetime': [1, 1, 2, 2],
+            'example_var': [10, 20, 30, 40],
+            'stn_id': ['C', 'A', 'C', 'A']
+        }).sort_values(['stn_id', 'lat', 'lon']).reset_index(drop=True)
+        ret = bc.attach_station_ids(forecasts, stations).sort_values(['stn_id', 'lat', 'lon']).reset_index(drop=True)
         assert_frame_equal(ret, exp, check_like=True)
 
     def test_attach_station_ids_duplicates(self):
@@ -294,8 +374,8 @@ class Test_Unit:
             'stn_id': ['A', 'B', 'C'],
         })
         exp = pd.DataFrame({
-            'lon': [-112.1, -114, -115.2, -114, -115.2, -114],
-            'lat': [49.9, 51.1, 60.2, 51.1, 60.2, 51.1],
+            'lon': [-112, -114.1, -115, -114.1, -115, -114.1],
+            'lat': [50.2, 51, 60.2, 51, 60.2, 51],
             'forecast': [10, 20, 30, 1, 2, 3],
             'datetime': [1, 2, 3, 4, 5, 6],
             'example_var': [10, 15, 20, 1, 2, 3],
