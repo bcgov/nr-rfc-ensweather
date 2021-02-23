@@ -212,7 +212,7 @@ class Test_Unit:
             'stn_id': ['A', 'A', 'A', 'B', 'B', 'B']
         })
         ret = bc.reformat_obs(stations, obs)
-        assert_frame_equal(ret, exp)
+        assert_frame_equal(ret, exp, check_like=True)
 
     def test_attach_station_ids(self):
         forecasts = pd.DataFrame({
