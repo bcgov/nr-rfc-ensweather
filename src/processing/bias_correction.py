@@ -158,6 +158,7 @@ def calculate_biases(key, meta, ff):
         biases[bias_key] = biases[mean_key] / biases[ob_key]
         biases.loc[biases[mean_key] == biases[ob_key], bias_key] = 1
         biases.drop(columns=[mean_key, ob_key], inplace=True)
+        counts.drop(columns=[mean_key], inplace=True)
         biases.loc[biases[bias_key] > cap, bias_key] = cap
         biases.loc[biases[bias_key] < 1 / cap, bias_key] = 1 / cap
         biases.loc[biases[bias_key] != biases[bias_key], bias_key] = 1
