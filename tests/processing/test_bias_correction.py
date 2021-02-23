@@ -216,7 +216,7 @@ class Test_Unit:
 
     def test_attach_station_ids(self):
         forecasts = pd.DataFrame({
-            'lon': [-112, -114, -115],
+            'lon': [-112+360, -114+360, -115+360],
             'lat': [50, 51, 60],
             'forecast': [10, 20, 30],
             'datetime': [1, 2, 3],

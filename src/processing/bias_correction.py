@@ -123,7 +123,7 @@ def get_forecast(forecast_time, model, new_forecast):
         dfs.append(pd.DataFrame(hour_data))
     if not dfs:
         return
-    data = pd.concat(dfs)
+    data = pd.concat(dfs, sort=True)
     return data
 
 
@@ -193,7 +193,7 @@ def reformat_obs(stations, observations):
         df.rename(columns=cols, inplace=True)
         df['stn_id'] = stid
         new_obs.append(df)
-    obs = pd.concat(new_obs)
+    obs = pd.concat(new_obs, sort=True)
     return obs.reset_index(drop=True)
 
 
@@ -208,6 +208,7 @@ def attach_station_ids(forecasts, stations):
         pd.DataFrame: Forecast data with station ids attached
     """
     forecasts['stn_id'] = ''
+    forecasts.loc[forecasts['lon'] > 0, 'lon'] -= 360
     coordinates = forecasts[['lat', 'lon']].values
     for stn_id, lat, lon in stations[['stn_id', 'lat', 'lon']].values:
         point = np.array([lat, lon])
@@ -258,7 +259,7 @@ def reformat_to_csv(forecast, date_tm):
         df.to_excel(writer, sheet_name=f'{stn}')
         dfs.append(df)
     writer.save()
-    final = pd.concat(dfs, axis=1)
+    final = pd.concat(dfs, axis=1, sort=True)
     cols = [i for i in final if i.endswith('mean')]
     final = final[cols]
     rename = {i: f'{i[:-5]}' for i in cols}
@@ -282,7 +283,7 @@ def collect_forecasts(date_tm, days_back, model):
         forecast = get_forecast(forecast_time, model, date_tm)
         if forecast is not None:
             forecasts.append(forecast)
-    prev_forecasts = pd.concat(forecasts)
+    prev_forecasts = pd.concat(forecasts, sort=True)
     prev_forecasts['day'] = prev_forecasts.datetime.dt.day
     prev_forecasts['month'] = prev_forecasts.datetime.dt.month
     prev_forecasts['year'] = prev_forecasts.datetime.dt.year
@@ -374,7 +375,7 @@ def main(date_tm):
         forecast.reset_index(drop=False, inplace=True)
         forecast['model'] = model
         corrected_forecasts.append(forecast)
-    forecast = pd.concat(corrected_forecasts)
+    forecast = pd.concat(corrected_forecasts, sort=True)
     forecast = forecast.groupby(['stn_id', 'datetime']).mean().reset_index(drop=False)
     reformat_to_csv(forecast, date_tm)
 
