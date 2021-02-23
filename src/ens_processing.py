@@ -1,4 +1,5 @@
 import argparse
+import contextlib
 import sys
 import shutil
 from datetime import datetime as dt, timedelta
@@ -66,10 +67,7 @@ def delete_old_folders():
             shutil.rmtree(folder)
 
 
-def main(args):
-    if args.process and args.download:
-        print('Process and Download cannot both be set to true.')
-        return
+def main_run(args):
     delete_old_folders()
     run_time = find_run_time(args)
 
@@ -81,9 +79,26 @@ def main(args):
         bias_correction.main(run_time)
 
 
+def main(args):
+
+    if args.process and args.download:
+        print('Process and Download cannot both be set to true.')
+        return
+
+    try:
+        if not args.verbose:
+            with contextlib.redirect_stdout(None), contextlib.redirect_stderr(None):
+                main_run(args)
+        else:
+            main_run(args)
+    except Exception as _:
+        print('Failure running program.')
+
+
 def parse_arguments():
     parser = argparse.ArgumentParser(description='Main program for ensemble model processing.')
     parser.add_argument('-v', '--version', action='version', version=f'{VERSION} WeatherLogics 2021')
+    parser.add_argument('-V', '--verbose', help='Do not silence terminal output.', action='store_true', default=False)
     parser.add_argument('-r', '--run', type=str, help='Specify run to forecast.', default=None)
     parser.add_argument('-d', '--download', help='Only download, do not process.', default=False, action='store_true')
     parser.add_argument('-p', '--process', help='Only process, do not download.', default=False, action='store_true')
