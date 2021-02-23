@@ -238,6 +238,24 @@ class Test_Unit:
         ret = bc.attach_station_ids(forecasts, stations)
         assert_frame_equal(ret, exp, check_like=True)
 
+    def test_attach_station_ids_duplicates(self):
+        forecasts = pd.DataFrame({
+            'lon': [-112, -114, -115, -112],
+            'lat': [50, 51, 60, 50],
+            'forecast': [10, 10, 10, 10],
+            'datetime': [1, 1, 1, 1],
+            'example_var': [10, 15, 20, 25],
+        })
+        stations = pd.DataFrame({
+            'lon': [-114, -115, -112, -112],
+            'lat': [51, 60, 50, 50],
+            'stn_id': ['A', 'B', 'C', 'D'],
+        })
+        exp = {'A', 'B', 'C', 'D'}
+        ret = bc.attach_station_ids(forecasts, stations)
+        ids = set(ret['stn_id'].values)
+        assert exp == ids
+
     def test_attach_station_ids_multiples(self):
         forecasts = pd.DataFrame({
             'lon': [-112, -114, -115, -114, -115, -114],
@@ -258,8 +276,8 @@ class Test_Unit:
             'datetime': [1, 2, 3, 4, 5, 6],
             'example_var': [10, 15, 20, 1, 2, 3],
             'stn_id': ['C', 'A', 'B', 'A', 'B', 'A'],
-        })
-        ret = bc.attach_station_ids(forecasts, stations)
+        }).sort_values(['stn_id', 'lat', 'lon']).reset_index(drop=True)
+        ret = bc.attach_station_ids(forecasts, stations).sort_values(['stn_id', 'lat', 'lon']).reset_index(drop=True)
         assert_frame_equal(ret, exp, check_like=True)
 
     def test_attach_station_ids_not_identical(self):
@@ -276,14 +294,14 @@ class Test_Unit:
             'stn_id': ['A', 'B', 'C'],
         })
         exp = pd.DataFrame({
-            'lon': [-112, -114.1, -115, -114.1, -115, -114.1],
-            'lat': [50.2, 51, 60.2, 51, 60.2, 51],
+            'lon': [-112.1, -114, -115.2, -114, -115.2, -114],
+            'lat': [49.9, 51.1, 60.2, 51.1, 60.2, 51.1],
             'forecast': [10, 20, 30, 1, 2, 3],
             'datetime': [1, 2, 3, 4, 5, 6],
             'example_var': [10, 15, 20, 1, 2, 3],
             'stn_id': ['C', 'A', 'B', 'A', 'B', 'A'],
-        })
-        ret = bc.attach_station_ids(forecasts, stations)
+        }).sort_values(['stn_id', 'lat', 'lon']).reset_index(drop=True)
+        ret = bc.attach_station_ids(forecasts, stations).sort_values(['stn_id', 'lat', 'lon']).reset_index(drop=True)
         assert_frame_equal(ret, exp, check_like=True)
 
     def test_correct_data(self):
