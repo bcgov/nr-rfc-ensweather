@@ -13,9 +13,9 @@ else:
     FILE_SPLITTER = '/'
 
 # NON USER SETTINGS
-VERSION = 0.1
+VERSION = 1.0
 
-BIAS_DAYS = 30
+BIAS_DAYS = 15
 
 TM_STGS = {
     'min': 6,
@@ -30,7 +30,7 @@ DM = {
     'lon1': -113,
 }
 
-ARCHIVED_RUN = dt(2021, 2, 19, 0)
+ARCHIVED_RUN = dt(2021, 2, 22, 12)
 
 MAX_RETRIES = 3
 MAX_DOWNLOADS = 10
