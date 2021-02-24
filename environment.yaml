@@ -4,6 +4,7 @@ channels:
   - defaults
 dependencies:
   - gdal=3.2.1
+  - openpyxl=3.0.6=pyhd8ed1ab_0
   - pandas=1.2.0
   - pycodestyle=2.6.0=pyh9f0ad1d_0
   - pylint=2.6.0=py39hde42818_1
