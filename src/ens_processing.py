@@ -14,8 +14,6 @@ else:
 base = splitter.join(__file__.split(splitter)[:-1])
 if base not in sys.path:
     sys.path.append(base)
-if not base:
-    base = './'
 
 from config.general_settings import VERSION, BIAS_DAYS, DIR, ALL_TIMES, FILE_SPLITTER
 from config.model_settings import models
@@ -91,6 +89,7 @@ def main(args):
             else:
                 bias_correction.main(run_time)
     except Exception as _:
+        raise
         print('Failure running program.')
 
 

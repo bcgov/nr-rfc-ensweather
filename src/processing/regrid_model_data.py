@@ -13,8 +13,6 @@ else:
 base = splitter.join(__file__.split(splitter)[:-2])
 if base not in sys.path:
     sys.path.append(base)
-if not base:
-    base = './'
 
 from common.helpers import get_stations
 from config import general_settings as gs

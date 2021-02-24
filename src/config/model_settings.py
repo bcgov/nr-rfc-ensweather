@@ -9,8 +9,6 @@ else:
 base = splitter.join(__file__.split(splitter)[:-2])
 if base not in sys.path:
     sys.path.append(base)
-if not base:
-    base = './'
 
 from config.general_settings import ALL_TIMES
 

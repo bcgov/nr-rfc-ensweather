@@ -16,8 +16,6 @@ base = splitter.join(__file__.split(splitter)[:-2])
 
 if base not in sys.path:
     sys.path.append(base)
-if not base:
-    base = './'
 
 from config import model_settings as ms, general_settings as gs, variable_settings as vs
 from common import helpers as h
