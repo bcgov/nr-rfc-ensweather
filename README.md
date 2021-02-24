@@ -102,3 +102,9 @@ Or if the GEPS for a previous cycle has already been downloaded and we only want
 conda activate bc_forecasting
 python src/ens_processing.py -p -r 20210220_00
 ```
+
+## Bias Correction
+
+### How it works
+Using station observational data and archived historical forecasts, we can calculate the errors made by the forecasted data over a period of time. Analyzing those errors may show a systemic bias in the forecast (temperature consistently too low for instance), and using the calculated errors, we then adjust the forecast by the average calculated error. If observations or forecasts are missing for some portion of the bias correction daily range, the bias correction is reduced in magnitude. For example, if only one day of data is present, and the bias range is fifteen days. If that single day had an error of +15 temperature, the bias it generated would be reduced to 1/15 of the original error. (+15 degrees) * (one available day / expected available days).
+For ratio type bias correction such as precip, a time range of values is summed for both observations and forecasts. The ratio of these values (forecasts/observations) is then used as a multiplier for the new forecast. For example, if forecasts predicted 40mm of precipitation over a time period, and only 20mm occurred, the multiplier would be 0.5 for the new forecast.
