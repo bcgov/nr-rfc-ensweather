@@ -5,10 +5,10 @@ from datetime import datetime as dt
 MAX_HOURS = 9999
 
 # DIR = /path/to/project/repository
-DIR = '/Users/paulpries/Documents/bc_forecasting/'
+DIR = ''
 
 # WGRIB2 = /path/to/wgrib2/executable
-WGRIB2 = '/opt/local/bin/wgrib2'
+WGRIB2 = ''
 
 
 import platform
