@@ -98,7 +98,7 @@ def parse_arguments():
     parser = argparse.ArgumentParser(description='Main program for ensemble model processing.')
     parser.add_argument('-v', '--version', action='version', version=f'{VERSION} WeatherLogics 2021')
     parser.add_argument('-V', '--verbose', help='Do not silence terminal output.', action='store_true', default=False)
-    parser.add_argument('-r', '--run', type=str, help='Specify run to forecast.', default=None)
+    parser.add_argument('-r', '--run', type=str, help='Specify run to forecast. Format: yyyymmdd_hh', default=None)
     parser.add_argument('-d', '--download', help='Only download, do not process.', default=False, action='store_true')
     parser.add_argument('-p', '--process', help='Only process, do not download.', default=False, action='store_true')
     return parser.parse_args()
