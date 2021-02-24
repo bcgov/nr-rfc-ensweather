@@ -70,7 +70,7 @@ optional arguments:
   -h, --help         show this help message and exit
   -v, --version      show program's version number and exit
   -V, --verbose      Do not silence terminal output.
-  -r RUN, --run RUN  Specify run to forecast.
+  -r RUN, --run RUN  Specify run to forecast. Format is YYYYMMDD_HH
   -d, --download     Only download, do not process.
   -p, --process      Only process, do not download.
 ```
