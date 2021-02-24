@@ -16,20 +16,19 @@ from config.general_settings import ALL_TIMES
 
 models = {
     'geps': {
-        # 'url': 'https://nomads.ncep.noaa.gov/cgi-bin/filter_cmcens.pl?',
-        # 'fn': 'file=cmc_geavg.t%Hz.pgrb2a.0p50.f{forecast_hour_three}{level_var_box}&dir=%%2Fcmce.%Y%m%d%%2F%H%%2Fpgrb2ap5',
+        # model download url base path
         'url': 'https://dd.weather.gc.ca/ensemble/geps/grib2/raw/%H/{forecast_hour_three}/',
+        # model download url file path
         'fn': 'CMC_geps-raw_{grib_name}_latlon0p5x0p5_%Y%m%d%H_P{forecast_hour_three}_allmbrs.grib2',
+        # number of days of forecasts expected to be found archived by the forecast creator. (Environment Canada in this case)
         'archived_days': 3,
-        'lontype': 'neg',
-        'cycle': 12,
-        'delay': 6.25,
+        # list of times available for download (and needed for download)
         'times': list(range(6, 385, 6)),
+        # download timeout (in seconds)
         'timeout': 30,
-        'onegrib': False,
-        'ens_average': True,
     },
 }
 
+# truncate model time list if general settings hours have been reduced
 for m in models.keys():
     models[m]['times'] = [i for i in models[m]['times'] if i in ALL_TIMES or i == 0]

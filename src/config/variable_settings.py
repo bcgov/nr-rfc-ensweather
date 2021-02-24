@@ -1,5 +1,22 @@
 import numpy as np
 
+# metvar documentation
+'''
+    'variable name': {
+        'mod': {
+            'model': [file name, grib name, grib level]
+            'geps': ['APCP_SFC_0', 'APCP', 'surface'],
+        },
+        'ensemble_percentiles': [upper percentile, lower percentile], options: [10, 25, 50, 75, 90]
+        'utc_time_start': hours after 0z forecast, # start of time range used to aggregate variable (precip is 6z-6z, so time_start is 6)
+        'time_range_length': number of hours used to aggregate variable,  # precip is 6z-6z which is 24 hours
+        'expected_values': number of forecast values expected to be used in bias correction, # precip has 4 (12, 18, 24, 6)
+        'aggregate_function': aggregate function,
+        'unit_offset': constant offset used to correct downloaded data to metric,
+        'correction': bias correction type,
+    },
+'''
+
 metvars = {
     'precip': {
         'mod': {
@@ -11,8 +28,6 @@ metvars = {
         'expected_values': 4,
         'aggregate_function': np.sum,
         'unit_offset': 0,
-        'mult': None,
-        'units': 'millimetres',
         'correction': 'ratio',
     },
     't_max': {
@@ -25,7 +40,6 @@ metvars = {
         'expected_values': 2,
         'aggregate_function': np.max,
         'unit_offset': 273.15,
-        'units': 'celsius',
         'correction': 'difference',
     },
     't_min': {
@@ -38,43 +52,6 @@ metvars = {
         'expected_values': 2,
         'aggregate_function': np.min,
         'unit_offset': 273.15,
-        'units': 'celsius',
         'correction': 'difference',
     },
 }
-
-
-# old stuff
-'''
-    't': {
-        'mod': {
-            'rdps': ['TMP_TGL_2', 'TMP', '2 m above ground'],
-            'gdps': ['TMP_TGL_2', 'TMP', '2 m above ground'],
-            'reps': ['TMP_TGL_2m', 'TMP', '2 m above ground'],
-            'geps': ['TMP_TGL_2m', 'TMP', '2 m above ground'],
-            'nam': [None, 'TMP', '2 m above ground'],
-            'rap': [None, 'TMP', '2 m above ground'],
-            'gfs': [None, 'TMP', '2 m above ground'],
-            'sref': [None, 'TMP', '2 m above ground'],
-            'gefs': [None, 'TMP', '2 m above ground'],
-            'met_fr': ['TMP/2m', 'TMP', '2 m above ground'],
-            'icon': ['t_2m', 'TMP', '2 m above ground'],
-        },
-        'acc': False,
-        'weighted': True,
-        'corrected': True,
-        'interpolation': 'distance weighted',
-        'ensemble_percentiles': [25, 75],
-        'unit_offset': 273.15,
-        'dp': 1,
-        'offset': None,
-        'std': True,
-        'mult': None,
-        'units': 'celsius',
-        'scale': 10,
-        'db_name': 'tmpc',
-        'smF': None,
-        'neg': False,
-    },
-
-'''

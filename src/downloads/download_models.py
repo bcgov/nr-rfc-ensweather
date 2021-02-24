@@ -124,28 +124,25 @@ def main(m, date_tm, times=None):
 
     make_dir(m, date_tm)
 
-    # check to see if the model is available at this run time
-    if(date_tm.hour % ms.models[m]['cycle'] == 0):
+    # create list of all urls to download. We download all models in dict
+    if times is None:
+        times = ms.models[m]['times']
 
-        # create list of all urls to download. We download all models in dict
-        if times is None:
-            times = ms.models[m]['times']
+    for t in times:
+        if t > gs.TM_STGS['max']:
+            break
 
-        for t in times:
-            if t > gs.TM_STGS['max']:
-                break
+        regrid_file = date_tm.strftime(f'{gs.DIR}models/{m}/%Y%m%d%H/ens_{m}_{t:03}.grib2')
+        if os.path.isfile(regrid_file):
+            continue
 
-            regrid_file = date_tm.strftime(f'{gs.DIR}models/{m}/%Y%m%d%H/ens_{m}_{t:03}.grib2')
-            if os.path.isfile(regrid_file):
-                continue
-
-            for v in vs.metvars:
-                if((t > 0) or (t == 0 and vs.metvars[v]['acc'] is False)):
-                    # if there is only surface data
-                    res = h.fmt_orig_fn(date_tm, t, m, var=vs.metvars[v]['mod'][m])
-                    if(res is not None):
-                        url_list.append({'model': m, 'pre': res[0],
-                                        'fname': res[1]})
+        for v in vs.metvars:
+            if((t > 0) or (t == 0 and vs.metvars[v]['acc'] is False)):
+                # if there is only surface data
+                res = h.fmt_orig_fn(date_tm, t, m, var=vs.metvars[v]['mod'][m])
+                if(res is not None):
+                    url_list.append({'model': m, 'pre': res[0],
+                                    'fname': res[1]})
 
         # start downloads in batches
         for idx, i in enumerate(range(0, len(url_list), MAX_DOWNLOADS)):
