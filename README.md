@@ -61,3 +61,9 @@ Beyond that, the user may choose to adjust BIAS_DAYS to include more or fewer da
 ### New Stations
 
 Within the resources folder, the stations csv contains all stations for which a forecast is created. To add a new station, simply fill in the required fields in this csv. The entered station must also be found in the observational data sheet in order to be used.
+
+### Output
+
+Two excel files are created as output of the bias correction program. One is placed in output/daily_raw, the other in output/forecasts. Both are named by their creation date (yyyy-mm-dd.xlsx).
+The daily raw file contains a sheet for each station, with each variable present as a mean value, lower percentile and upper percentile forecast.
+The forecast file contains all stations on a single sheet, with only the mean value present.
