@@ -11,8 +11,6 @@ else:
 base = splitter.join(__file__.split(splitter)[:-2])
 if base not in sys.path:
     sys.path.append(base)
-if not base:
-    base = './'
 
 import numpy as np
 import pandas as pd
@@ -150,6 +148,7 @@ def calculate_biases(key, meta, ff):
     ob_key = f'ob_{key}'
     bias_key = f'bias_{key}_mean'
     mean_key = f'{key}_mean'
+    ff.loc[ff[ob_key].isna(), mean_key] = np.NaN
     if meta['correction'] == 'ratio':
         cap = 5
         biases = ff[['stn_id', 'forecast_day', ob_key, mean_key]].groupby(['stn_id', 'forecast_day']).sum()

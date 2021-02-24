@@ -165,6 +165,32 @@ class Test_Unit:
             biases = bc.calculate_biases(key, vs.metvars[key], df)
             assert_frame_equal(biases[[f'bias_{key}_mean']], exp[[f'bias_{key}_mean']])
 
+    def test_calculate_biases_missing_observational(self, monkeypatch):
+        monkeypatch.setattr(bc.gs, 'BIAS_DAYS', 2)
+        df = pd.DataFrame({
+            'stn_id': ['A', 'A', 'A', 'A'],
+            'forecast_day': [1, 1, 2, 2],
+            't_max_mean': [10, 10, 20, 25],
+            'ob_t_max': [10, np.NaN, 15, np.NaN],
+            'precip_mean': [0, 1, 1, 2],
+            'ob_precip': [0, np.NaN, 5, np.NaN],
+        })
+        exp = pd.DataFrame({
+            'stn_id': ['A', 'A'],
+            'forecast_day': [1, 2],
+            't_max_mean': [10, 22.5],
+            'ob_t_max': [10, 20],
+            'bias_t_max_mean': [0, 2.5],
+            'bias_t_max_mean_count': [0.5, 0.5],
+            'precip_mean': [1, 3],
+            'ob_precip': [0, 8],
+            'bias_precip_mean': [1, 6/10],
+            'bias_precip_mean_count': [0.5, 0.5],
+        }).set_index(['stn_id', 'forecast_day'])
+        for key in ['t_max', 'precip']:
+            biases = bc.calculate_biases(key, vs.metvars[key], df)
+            assert_frame_equal(biases[[f'bias_{key}_mean']], exp[[f'bias_{key}_mean']])
+
     def test_calculate_biases_with_count(self, monkeypatch):
         monkeypatch.setattr(bc.gs, 'BIAS_DAYS', 4)
         df = pd.DataFrame({
