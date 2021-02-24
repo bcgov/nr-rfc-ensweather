@@ -254,7 +254,9 @@ def reformat_to_csv(forecast, date_tm):
     dfs = []
     folder = date_tm.strftime('%Y-%m-%d')
     forecast['datetime'] = forecast['datetime'].apply(lambda x: x.strftime('%Y-%m-%d'))
-    # os.makedirs(f'{gs.DIR}/output/{folder}', exist_ok=True)
+    os.makedirs(f'{gs.DIR}/output/daily_raw', exist_ok=True)
+    os.makedirs(f'{gs.DIR}/output/forecasts', exist_ok=True)
+
     writer = pd.ExcelWriter(f'{gs.DIR}/output/daily_raw/{folder}.xlsx')
     for stn in sorted(list(stns)):
         df = forecast.loc[forecast['stn_id'] == stn, cols].set_index('datetime', drop=True)
