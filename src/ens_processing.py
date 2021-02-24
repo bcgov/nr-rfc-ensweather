@@ -67,30 +67,29 @@ def delete_old_folders():
             shutil.rmtree(folder)
 
 
-def main_run(args):
-    delete_old_folders()
-    run_time = find_run_time(args)
-
-    if not args.process:
-        print('Downloading and Regridding data and missing runs.')
-        download_needed_runs(run_time)
-    if not args.download:
-        print(f'Bias correcting {run_time}')
-        bias_correction.main(run_time)
-
-
 def main(args):
-
     if args.process and args.download:
         print('Process and Download cannot both be set to true.')
         return
 
     try:
-        if not args.verbose:
-            with contextlib.redirect_stdout(None), contextlib.redirect_stderr(None):
-                main_run(args)
-        else:
-            main_run(args)
+        delete_old_folders()
+        run_time = find_run_time(args)
+
+        if not args.process:
+            print('Downloading and Regridding data and missing runs.')
+            if not args.verbose:
+                with contextlib.redirect_stdout(None), contextlib.redirect_stderr(None):
+                    download_needed_runs(run_time)
+            else:
+                download_needed_runs(run_time)
+        if not args.download:
+            print(f'Bias correcting {run_time}')
+            if not args.verbose:
+                with contextlib.redirect_stdout(None), contextlib.redirect_stderr(None):
+                    bias_correction.main(run_time)
+            else:
+                bias_correction.main(run_time)
     except Exception as _:
         print('Failure running program.')
 
