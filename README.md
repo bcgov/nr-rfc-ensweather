@@ -3,6 +3,8 @@ This project was designed by Weatherlogics for the use of the B.C. government fo
 
 ## Install
 
+Installation of this program involves two main parts: installing the python dependencies and installing wgrib2. We recommend installing the python dependences by creating a conda environment as described below. Wgrib2 is a program used to process GRIB2 files containing meteorological data. It must be downloaded and then compiled. We have included some basic instructions about this process below, but more information about wgrib2 is available from the software developer.
+
 ### Project installation
 
 Within the project directory, the anaconda environment used by this project can be installed as follows:
@@ -33,22 +35,9 @@ cp wgrib2/wgrib2.exe C:\Program Files\wgrib2
 ```
 Modifications may need to be made to the above script in order to deal with different operating systems. However, installation instructions for this package are also provided by ncep at the same site from which wgrib2 is downloaded.
 
-## Usage
-### Daily Runs
-Daily runs are designed to be run on a schedule, however the program can be run manually, if that is required.
+More details and tips for compiling wgrib2 are available at: https://www.cpc.ncep.noaa.gov/products/wesley/wgrib2/
 
-Using a terminal, change directories to the root of the bc_forecasting directory, and type in the following commands.
-```
-conda activate bc_forecasting
-python src/ens_processing.py
-```
-
-Arguments can be used to change the behaviour of the run. These can be seen with the following.
-
-```
-conda activate bc_forecasting
-python src/ens_processing.py -h
-```
+## Configuration
 
 ### Settings Configuration
 
@@ -67,3 +56,49 @@ Within the resources folder, the stations csv contains all stations for which a 
 Two excel files are created as output of the bias correction program. One is placed in output/daily_raw, the other in output/forecasts. Both are named by their creation date (yyyy-mm-dd.xlsx).
 The daily raw file contains a sheet for each station, with each variable present as a mean value, lower percentile and upper percentile forecast.
 The forecast file contains all stations on a single sheet, with only the mean value present.
+
+## Usage
+
+The ensemble processing script is executed from the command line. To start a run, the user activates their conda environment and then executes the python script. In its simplest form, the script is executed without any arguments to process the latest GEPS forecast. However, there are some arguments available to control the program:
+
+usage: python src/ens_processing.py [-h] [-v] [-V] [-r RUN] [-d] [-p]
+
+Main program for ensemble model processing.
+
+optional arguments:
+  -h, --help         show this help message and exit
+  -v, --version      show program's version number and exit
+  -V, --verbose      Do not silence terminal output.
+  -r RUN, --run RUN  Specify run to forecast.
+  -d, --download     Only download, do not process.
+  -p, --process      Only process, do not download.
+
+## Examples
+The program can be run on a schedule (e.g. using cron), or executed manually. Here is an example of running all aspects of the program for the most recent cycle of the GEPS.
+
+Using a terminal, change directories to the root of the bc_forecasting directory, and type in the following commands.
+```
+conda activate bc_forecasting
+python src/ens_processing.py
+```
+
+Arguments can be used to change the behaviour of the run. For example, here we specify a previous cycle of the GEPS to process.
+
+```
+conda activate bc_forecasting
+python src/ens_processing.py -r 20210220_00
+```
+
+Arguments can also be used to only download or process the GEPS. For example, if the GEPS for the current cycle has already been downloaded and we only want to process it:
+
+```
+conda activate bc_forecasting
+python src/ens_processing.py -p
+```
+
+Or if the GEPS for a previous cycle has already been downloaded and we only want to process it:
+
+```
+conda activate bc_forecasting
+python src/ens_processing.py -p -r 20210220_00
+```
