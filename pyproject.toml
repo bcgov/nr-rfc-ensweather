@@ -1,0 +1,6 @@
+[tool.pytest.ini_options]
+markers = [
+    "unit: Unit tests for functional testing",
+    "integration: Integration tests for system testing",
+    "pre_commit: Fast tests, mostly reserved to ensure testing lines are not committed",
+]

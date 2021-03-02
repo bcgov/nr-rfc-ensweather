@@ -1,0 +1,15 @@
+name: bc_forecasting
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - gdal=3.2.1
+  - openpyxl=3.0.6=pyhd8ed1ab_0
+  - pandas=1.2.0
+  - pycodestyle=2.6.0=pyh9f0ad1d_0
+  - pylint=2.6.0=py39hde42818_1
+  - pygrib=2.1.3
+  - pytest=6.2.1=py39h6e9494a_0
+  - python=3.9.1=h1d169a7_2_cpython
+  - xarray=0.16.2
+
