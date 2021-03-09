@@ -11,3 +11,12 @@ errors
 .DS_Store
 
 *pyc
+condaenv
+
+wgrib*
+cygdir
+cygpackages
+setup.log
+setup.log.full
+
+
