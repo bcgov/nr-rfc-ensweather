@@ -5,6 +5,13 @@ SET cygdirbin=%cygdir%\bin
 SET cygpackages=%curDir%\cygpackages
 SET cygSetup=%cygpackages%\setup_cygwin.exe
 
+echo curDir %curDir%
+echo cygdir %cygdir%
+echo cygdirbin %cygdirbin%
+echo cygpackages %cygpackages%
+echo cygSetup %cygSetup%
+
+
 if NOT EXIST %cygdir% (
     mkdir %cygdir%
 )
@@ -23,8 +30,8 @@ if NOT EXIST %cygdirbin%/bash.exe (
     --download ^
     --local-install ^
     --site http://muug.ca/mirror/cygwin/ ^
-    --local-package-dir $cygpackages ^
-    --root $cygdir ^
+    --local-package-dir %cygpackages% ^
+    --root %cygdir% ^
     --no-admin ^
     --no-startmenu ^
     --disable-buggy-antivirus ^
