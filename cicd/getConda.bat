@@ -13,9 +13,9 @@ if NOT EXIST %minicondaInstallerFullPath% (
     curl %minicondaURL% -o %minicondaInstallerFullPath%
 )
 
-if NOT EXISTS %minicondaInstallDir%\condabin (
+if NOT EXIST %minicondaInstallDir%\condabin (
     cd %minicondaInstallDir%
-    .\%minicondaInstallFile% /S /InstallationType=JustMe AddToPath=0 /RegisterPython=0 /D=%minicondaInstallDir%
+    %minicondaInstallFile% /S /InstallationType=JustMe AddToPath=0 /RegisterPython=0 /D=%minicondaInstallDir%
     cd ..
 )
 
