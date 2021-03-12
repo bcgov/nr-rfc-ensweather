@@ -10,10 +10,10 @@ SET PYTHONDOWNLOAD=https://www.python.org/ftp/python/3.8.6/python-3.8.6-embed-am
 @REM needs cygwinhome
 
 :: ---- debugging -----
-if EXIST %pyinstallDir% (
-    del /F /Q %pyinstallDir%
-    rmdir /Q %pyinstallDir%
-)
+@REM if EXIST %pyinstallDir% (
+@REM     del /F /Q %pyinstallDir%
+@REM     rmdir /Q %pyinstallDir%
+@REM )
 
 if NOT EXIST %pyinstallDir% (
     mkdir %pyinstallDir%
