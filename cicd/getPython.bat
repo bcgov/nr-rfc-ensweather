@@ -15,7 +15,6 @@ if EXIST %pyinstallDir% (
     rmdir /Q %pyinstallDir%
 )
 
-
 if NOT EXIST %pyinstallDir% (
     mkdir %pyinstallDir%
 )
