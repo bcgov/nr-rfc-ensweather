@@ -31,6 +31,3 @@ if NOT EXIST %pythonexeFullPath% (
     curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py
     %pythonexeFullPath% get-pip.py
 )
-
-
-
