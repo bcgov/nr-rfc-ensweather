@@ -5,7 +5,7 @@ SET pythoninstallerFullPath=%pyinstallDir%\%pythoninstaller%
 SET pythonexeFullPath=%pyinstallDir%\python.exe
 SET PATH=%cygwinhome%\bin;%PATH%
 
-:: needs cygwinhome
+@REM needs cygwinhome
 
 :: ---- debugging -----
 if EXIST %pyinstallDir% (
@@ -20,19 +20,13 @@ if NOT EXIST %pyinstallDir% (
 if NOT EXIST %pythoninstallerFullPath% (
     curl https://www.python.org/ftp/python/3.9.2/python-3.9.2-embed-amd64.zip -o %pythoninstallerFullPath%
 )
-if NOT EXIST %pythoninstaller% (
-    cd %pyinstallDir%
-    %cygwinhome%\bin\bash.exe -c "unzip $pythoninstaller"
-)
 if NOT EXIST %pythonexeFullPath% (
     cd %pyinstallDir%
-    echo unzipping the python file
-    %cygwinhome%\bin\bash.exe -c "unzip $pythoninstaller"
-    ::%cygwinhome%\bin\bash.exe -c "echo 'import site' >> python39._pth"
-    echo updating the python path
-    echo import site >> python39._pth
-    echo getting get-pip
-    curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py
+    dir
+    echo unzipping the python file    
+    %cygwinhome%\bin\bash.exe -c "unzip $pythoninstaller && chmod +x *"
+    %cygwinhome%\bin\bash.exe -c "echo 'import site' >> python39._pth"
+    curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py"
     echo running getpip
     %pythonexeFullPath% get-pip.py
     echo done
