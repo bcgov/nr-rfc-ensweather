@@ -26,9 +26,14 @@ if NOT EXIST %pythoninstaller% (
 )
 if NOT EXIST %pythonexeFullPath% (
     cd %pyinstallDir%
+    echo unzipping the python file
     %cygwinhome%\bin\bash.exe -c "unzip $pythoninstaller"
     ::%cygwinhome%\bin\bash.exe -c "echo 'import site' >> python39._pth"
+    echo updating the python path
     echo import site >> python39._pth
+    echo getting get-pip
     curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py
+    echo running getpip
     %pythonexeFullPath% get-pip.py
+    echo done
 )
