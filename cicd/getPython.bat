@@ -4,6 +4,8 @@ SET pythoninstaller=python39_installer.zip
 SET pythoninstallerFullPath=%pyinstallDir%\%pythoninstaller%
 SET pythonexeFullPath=%pyinstallDir%\python.exe
 SET PATH=%cygwinhome%\bin;%PATH%
+SET PYTHONDOWNLOAD=https://www.python.org/ftp/python/3.8.6/python-3.8.6-embed-amd64.zip
+@REM SET PYTHONDOWNLOAD=https://www.python.org/ftp/python/3.9.2/python-3.9.2-embed-amd64.zip
 
 @REM needs cygwinhome
 
@@ -18,7 +20,7 @@ if NOT EXIST %pyinstallDir% (
     mkdir %pyinstallDir%
 )
 if NOT EXIST %pythoninstallerFullPath% (
-    curl https://www.python.org/ftp/python/3.9.2/python-3.9.2-embed-amd64.zip -o %pythoninstallerFullPath%
+    curl %PYTHONDOWNLOAD% -o %pythoninstallerFullPath%
 )
 if NOT EXIST %pythonexeFullPath% (
     cd %pyinstallDir%
