@@ -1,6 +1,6 @@
 SET curDir=%cd%
 SET pyinstallDir=%curDir%\python
-SET pythoninstaller=python39.zip
+SET pythoninstaller=python39_installer.zip
 SET pythoninstallerFullPath=%pyinstallDir%\%pythoninstaller%
 SET pythonexeFullPath=%pyinstallDir%\python.exe
 SET PATH=%cygwinhome%\bin;%PATH%
