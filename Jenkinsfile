@@ -2,11 +2,13 @@ node('etl-test') {
     withEnv([
         "JOB_NAME=EnsembleWeather_build", 
         "ARTIFACT_DIR=\\drain.dmz\Shared",
-        "DRIVEMAPPING=",
+        "ENS_DRIVEMAPPING=",
         "ENS_NETWORK_DRIVE=",
         "ENS_ARTIFACTS_FOLDER=$DRIVEMAPPING:\ensemble_weather\build",
         "PYTHON_HOME=$ENS_ARTIFACTS_FOLDER\python",
         "WGRIB2EXEC="
+        "IDIRUSER"
+        "IDIRPSWD"
         "TEMP=$WORKSPACE\\tmp",
         "TMP=$WORKSPACE\\tmp",
         ]) {
