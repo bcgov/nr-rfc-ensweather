@@ -9,6 +9,7 @@ errors
 .vscode
 .pytest_cache
 .DS_Store
+.env
 
 *pyc
 condaenv
@@ -18,5 +19,6 @@ cygdir
 cygpackages
 setup.log
 setup.log.full
+tmp
 
-
+junk.txt

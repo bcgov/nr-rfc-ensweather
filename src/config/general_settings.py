@@ -1,4 +1,5 @@
 from datetime import datetime as dt
+import os
 # POSSIBLE USER SETTINGS
 # max hours can be set to something lower if a shorter forecast is wanted
 # 9999 is default and will allow for the full run described by TM_STGS
@@ -8,7 +9,7 @@ MAX_HOURS = 9999
 DIR = ''
 
 # WGRIB2 = /path/to/wgrib2/executable
-WGRIB2 = ''
+WGRIB2 = os.environ['WGRIB2EXEC']
 
 
 import platform
