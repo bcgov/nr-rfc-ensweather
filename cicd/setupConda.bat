@@ -15,5 +15,5 @@ if NOT EXIST %ensweatherCondaPath% (
 )
 if NOT EXIST %ensweatherCondaPath%\python.exe (
     ::cd %WORKSPACE%
-    conda.bat env create --prefix %ensweatherCondaPath% --file %WORKSPACE%\environment.yaml
+    conda.bat env create --prefix %ensweatherCondaPath% --file %condaEnvFilePath%\environment.yaml
 )
