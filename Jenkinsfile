@@ -1,4 +1,4 @@
-node('zavijava') {
+node('drain') {
     withEnv([
         "JOB_NAME=EnsembleWeather_build", 
         "TEMP=$WORKSPACE\\tmp",
