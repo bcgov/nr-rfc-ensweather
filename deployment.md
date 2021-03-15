@@ -1,8 +1,8 @@
 # Deployment
 
-Describes how the deployment / running of the ens processing scripts is going to work
+Describes how the deployment / running of the ens processing scripts is working when deployed to jenkins
 
-## Env Vars
+## Env Vars used by Jenkins
 
 * **RFC_ARTIFACTS_FOLDER** - location where the ens weather artifacts will be located
    under this folder the following folders will be created:
@@ -14,16 +14,20 @@ Describes how the deployment / running of the ens processing scripts is going to
   * **miniconda**      - miniconda install location
   * **rfc_conda_envs** - home for the various conda environments used by river forecast centre data processing scripts
 * **ENS-WEATHER-DATA** - location of any data downloaded or otherwise used by the ensemble weather processing scripts
+* **GIT_REPOSITORY**   - https path to the git repository with the rfc ensemble weather code.
+* **TAGNAME**          - Branch/release tag to run
+* **ENS_DRIVEMAPPING** - drive letter to be used for the river forecast centres share
+* **ENS_NETWORK_DRIVE**- the network share (unc), this share will be connected to $ENS_DRIVEMAPPING
+* **ENS_WEATHER_DATA** - file path to where the output data created by the ensemble weather scripts will be located.
+
+## Jenkins Steps:
+
+### Checkout
+* Gets the code from the git repo
+* currently git integration in jenkins cron seems to be broken so getting this with clone / checkout / pull in windows bat steps
 
 
 
-
-    
-
-* CYGWINBASE     - the root directory for cygwin install
-* CYGWINPACKAGES - contains the cached cygwin packages and the location of setup.exe
-* ENSWEATHERDATA - Where ensemble weather data will be located
-* CONDAENV_ENS   - location of the ens conda environment
 
 ## Requirements:
 

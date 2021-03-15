@@ -9,7 +9,6 @@ SET minicondaBin=%minicondaInstallDir%\condabin
 
 SET PATH=%minicondaBin%;%PATH%
 
-
 if NOT EXIST %condaEnvPath%\python.exe (
     ::cd %WORKSPACE%
     conda.bat env create --prefix %condaEnvPath% --file %condaEnvFilePath%
