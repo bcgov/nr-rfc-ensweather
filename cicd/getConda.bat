@@ -20,6 +20,7 @@ if NOT EXIST %minicondaInstallDir%\condabin (
 )
 
 
+
 @REM To run the the Windows installer for Miniconda in silent mode, use the /S argument. The following optional arguments are supported:
 @REM     /InstallationType=[JustMe|AllUsers]---Default is JustMe.
 @REM     /AddToPath=[0|1]---Default is 0
