@@ -4,6 +4,22 @@ Describes how the deployment / running of the ens processing scripts is going to
 
 ## Env Vars
 
+* **RFC_ARTIFACTS_FOLDER** - location where the ens weather artifacts will be located
+   under this folder the following folders will be created:
+
+  * **cygdir**         - The cygwinhome
+  * **cygpackages**    - where cygwin install packages will get cached
+  * **python**         - embedded python3 install
+  * **wgrib2**         - where wgrib2 will get downloaded to
+  * **miniconda**      - miniconda install location
+  * **rfc_conda_envs** - home for the various conda environments used by river forecast centre data processing scripts
+* **ENS-WEATHER-DATA** - location of any data downloaded or otherwise used by the ensemble weather processing scripts
+
+
+
+
+    
+
 * CYGWINBASE     - the root directory for cygwin install
 * CYGWINPACKAGES - contains the cached cygwin packages and the location of setup.exe
 * ENSWEATHERDATA - Where ensemble weather data will be located

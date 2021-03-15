@@ -6,7 +6,7 @@ import os
 MAX_HOURS = 9999
 
 # DIR = /path/to/project/repository
-DIR = ''
+DIR = os.environ['ENS_WEATHER_DATA']
 
 # WGRIB2 = /path/to/wgrib2/executable
 WGRIB2 = os.environ['WGRIB2EXEC']

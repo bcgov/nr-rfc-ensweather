@@ -1,19 +1,16 @@
+:: creates a conda env in the folder
+:: %rfc_conda_envs%
 SET curDir=%cd%
 SET minicondaInstallDir=%curDir%\miniconda
 SET minicondaBin=%minicondaInstallDir%\condabin
-SET condaEnvPath=%curDir%\rfc_conda_envs
-SET ensweatherCondaPath=%condaEnvPath%\ens_weather
+
+::SET condaEnvPath=%curDir%\rfc_conda_envs
+::SET ensweatherCondaPath=%condaEnvPath%\ens_weather
 
 SET PATH=%minicondaBin%;%PATH%
 
 
-if NOT EXIST %condaEnvPath% (
-    mkdir %condaEnvPath%
-)
-if NOT EXIST %ensweatherCondaPath% (
-    mkdir %ensweatherCondaPath%
-)
-if NOT EXIST %ensweatherCondaPath%\python.exe (
+if NOT EXIST %condaEnvPath%\python.exe (
     ::cd %WORKSPACE%
-    conda.bat env create --prefix %ensweatherCondaPath% --file %condaEnvFilePath%\environment.yaml
+    conda.bat env create --prefix %condaEnvPath% --file %condaEnvFilePath%
 )
