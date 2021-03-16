@@ -65,8 +65,10 @@ def get_messages(path, model):
         tuple: Correlated lists of names and grib message numbers
     """
     cmd = f'{gs.WGRIB2} {path} -s -n'
+    LOGGER.debug(f"cmd is: {cmd}")
     res = open_subprocess_pipe(cmd)
     res = (res.split('\n'))[:-1]
+    LOGGER.debug(f"res: {res}")
     names = []
     messages = []
     for key, meta in vs.metvars.items():
@@ -92,6 +94,7 @@ def access_grib(path, message):
 
 
 def check_file(path):
+    LOGGER.debug(f"path: {path}")
     return os.path.isfile(path)
 
 
@@ -117,6 +120,7 @@ def get_forecast(forecast_time, model, new_forecast):
         try:
             pathStr = forecast_time.strftime(f'{gs.DIR}/models/{model}/%Y%m%d%H/ens_{model}_{hour:03}.grib2')
             path = pathlib.Path(pathStr)
+            LOGGER.debug(f"forecast: {path}")
             if check_file(path):
                 names, messages = get_messages(path, model)
                 for name, message in zip(names, messages):
@@ -299,7 +303,9 @@ def collect_forecasts(date_tm, days_back, model):
     for forecast_time in free_range(date_tm, date_tm - timedelta(days=days_back), timedelta(days=-1)):
         forecast = get_forecast(forecast_time, model, date_tm)
         if forecast is not None:
+            LOGGER.debug(f"forecast: {forecast}")
             forecasts.append(forecast)
+    LOGGER.debug(f"forcasts are: {forecasts}")
     prev_forecasts = pd.concat(forecasts, sort=True)
     prev_forecasts['day'] = prev_forecasts.datetime.dt.day
     prev_forecasts['month'] = prev_forecasts.datetime.dt.month
