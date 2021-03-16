@@ -106,7 +106,7 @@ def check_downloads(download_folder, expected, file_size=1000):
     Returns:
         bool: Whether or not downloads appear to be working correctly
     """
-    files = glob(download_folder)
+    files = glob(str(download_folder))
     exist = 0
     for i in files:
         if os.stat(i).st_size > file_size:
