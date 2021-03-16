@@ -302,6 +302,7 @@ def collect_forecasts(date_tm, days_back, model):
     Returns:
         pd.DataFrame: All relevant forecasts.
     """
+    LOGGER.debug(f"date_tm: {date_tm}  days_back: {days_back}  model: {model}")
     forecasts = []
     for forecast_time in free_range(date_tm, date_tm - timedelta(days=days_back), timedelta(days=-1)):
         LOGGER.debug(f"forcast_time: {forecast_time}")
