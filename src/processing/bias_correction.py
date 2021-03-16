@@ -33,13 +33,13 @@ def get_observations(date_tm):
         pd.DataFrame: Observational data stored in pandas dataframe
     """
     
-    climate_path_str = f'{gs.DIR}/resources/climate_obs_{date_tm.year}.csv'
+    climate_path_str = f'{gs.SRCDIR}/resources/climate_obs_{date_tm.year}.csv'
     climate_path = pathlib.Path(climate_path_str)
     df = pd.read_csv(climate_path)
     df['DATE'] = df['DATE'].apply(pd.to_datetime)
     start_bias = date_tm - timedelta(days=gs.BIAS_DAYS)
     if start_bias.year != date_tm.year:
-        clim_obs_path_str = f'{gs.DIR}/resources/climate_obs_{start_bias.year}.csv'
+        clim_obs_path_str = f'{gs.SRCDIR}/resources/climate_obs_{start_bias.year}.csv'
         clim_obj_path = pathlib.Path(clim_obs_path_str)
         df_two = pd.read_csv(clim_obj_path)
         df = df.append(df_two)
