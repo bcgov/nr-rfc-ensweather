@@ -40,6 +40,11 @@ LOGGING_CONFIG = {
             'level': 'DEBUG',
             'propagate': False
         },
+        'downloads.download_models': { 
+            'handlers': ['default'],
+            'level': 'DEBUG',
+            'propagate': False
+        },
         '__main__': {  # if __name__ == '__main__'
             'handlers': ['default'],
             'level': 'DEBUG',

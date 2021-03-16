@@ -122,6 +122,7 @@ def check_downloads(download_folder, expected, file_size=1000):
 
 
 def main(m, date_tm, times=None):
+    LOGGER.debug("main called from download_models")
     MAX_DOWNLOADS = gs.MAX_DOWNLOADS
     # MAX_DOWNLOADS = 1
     url_list = []

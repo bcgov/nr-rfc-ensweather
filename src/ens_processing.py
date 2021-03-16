@@ -52,6 +52,7 @@ def find_run_time(args):
 
 
 def download_needed_runs(run_time):
+    LOGGER.debug(f"downloading needed runs: {run_time}")
     for model in models:
         LOGGER.debug(f"model: {model}")
         for tm in free_range(run_time, run_time - timedelta(days=BIAS_DAYS), timedelta(hours=-12)):

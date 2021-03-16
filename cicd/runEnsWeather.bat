@@ -16,5 +16,5 @@ SET WGRIB2EXEC=%CYGWINHOME%\bin\wgrib2.exe
 conda.bat activate %condaEnvPath%
 
 @REM -------- run the ens weather --------
-%condaEnvPath%\python src/ens_processing.py
+%condaEnvPath%\python src\ens_processing.py -V
 
