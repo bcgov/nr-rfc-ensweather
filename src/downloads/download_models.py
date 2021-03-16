@@ -46,7 +46,7 @@ class Download():
     def __init__(self, model, pre, fname, run: dt):
         fp_str = f'{gs.DIR}/models/{model}/{run.strftime("%Y%m%d%H")}/{fname.replace("/", "_")}'
         self.fp = pathlib.Path(fp_str)
-
+        LOGGER.debug(f"self.fp: {self.fp}")
         self.TIMEOUT = ms.models[model]['timeout']
         self.NUM_RETRIES = gs.MAX_RETRIES
         self.download_model(pre, fname)

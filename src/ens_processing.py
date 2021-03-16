@@ -83,7 +83,7 @@ def main(args):
     try:
         delete_old_folders()
         run_time = find_run_time(args)
-
+        LOGGER.debug(f"run_time: {run_time}")
         if not args.process:
             LOGGER.info("Downloading and Regridding data and missing runs.")
             #print('Downloading and Regridding data and missing runs.')

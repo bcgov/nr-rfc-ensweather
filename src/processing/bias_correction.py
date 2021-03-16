@@ -37,15 +37,18 @@ def get_observations(date_tm):
     
     climate_path_str = f'{gs.SRCDIR}/resources/climate_obs_{date_tm.year}.csv'
     climate_path = pathlib.Path(climate_path_str)
+    LOGGER.debug(f"climate_path: {climate_path}")
     df = pd.read_csv(climate_path)
     df['DATE'] = df['DATE'].apply(pd.to_datetime)
     start_bias = date_tm - timedelta(days=gs.BIAS_DAYS)
     if start_bias.year != date_tm.year:
         clim_obs_path_str = f'{gs.SRCDIR}/resources/climate_obs_{start_bias.year}.csv'
         clim_obj_path = pathlib.Path(clim_obs_path_str)
+        LOGGER.debug(f"clim_obj_path: {clim_obj_path}")
         df_two = pd.read_csv(clim_obj_path)
         df = df.append(df_two)
     df = df.loc[df['DATE'] >= start_bias]
+    LOGGER.debug(f"df: {df}")
     return df
 
 
@@ -302,8 +305,8 @@ def collect_forecasts(date_tm, days_back, model):
     forecasts = []
     for forecast_time in free_range(date_tm, date_tm - timedelta(days=days_back), timedelta(days=-1)):
         forecast = get_forecast(forecast_time, model, date_tm)
+        LOGGER.debug(f"forecast: {forecast}")
         if forecast is not None:
-            LOGGER.debug(f"forecast: {forecast}")
             forecasts.append(forecast)
     LOGGER.debug(f"forcasts are: {forecasts}")
     prev_forecasts = pd.concat(forecasts, sort=True)
@@ -360,6 +363,7 @@ def main(date_tm):
     days_back = gs.BIAS_DAYS + max(gs.ALL_TIMES) // 24 + 1
     corrected_forecasts = []
     for model in models:
+        LOGGER.debug(f"model: {model}")
         # Find all relevant forecasts
         prev_forecasts = collect_forecasts(date_tm, days_back, model)
 
