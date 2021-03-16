@@ -1,8 +1,8 @@
 import datetime as dt
+import logging
 import os
 import sys
 import pathlib
-from ens_processing import LOGGER
 
 import numpy as np
 import pandas as pd
@@ -19,6 +19,7 @@ if base not in sys.path:
 
 from config import general_settings as gs, model_settings as ms, variable_settings as vs
 
+LOGGER = logging.getLogger(__name__)
 
 def free_range(start, stop, step):
     """Range iterator allowing more types than just integers
