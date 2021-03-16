@@ -57,7 +57,7 @@ def download_needed_runs(run_time):
 
 def delete_old_folders():
     now = get_now()
-    folders = glob(f'{DIR}models/*/*')
+    folders = glob(f'{DIR}/models/*/*')
     for folder in folders:
         base_name = folder.split(FILE_SPLITTER)[-1]
         tm = dt.strptime(base_name, '%Y%m%d%H')

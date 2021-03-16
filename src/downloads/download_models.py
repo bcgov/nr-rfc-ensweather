@@ -42,7 +42,9 @@ class myThread (threading.Thread):
 class Download():
 
     def __init__(self, model, pre, fname, run: dt):
-        self.fp = f'{gs.DIR}models/{model}/{run.strftime("%Y%m%d%H")}/{fname.replace("/", "_")}'
+        fp_str = f'{gs.DIR}/models/{model}/{run.strftime("%Y%m%d%H")}/{fname.replace("/", "_")}'
+        self.fp = pathlib.Path(fp_str)
+
         self.TIMEOUT = ms.models[model]['timeout']
         self.NUM_RETRIES = gs.MAX_RETRIES
         self.download_model(pre, fname)
@@ -89,7 +91,7 @@ def make_dir(m, cr: dt):
     Returns:
         None
     """
-    path = pathlib.Path(cr.strftime(f'{gs.DIR}models/{m}/%Y%m%d%H/'))
+    path = pathlib.Path(cr.strftime(f'{gs.DIR}/models/{m}/%Y%m%d%H/'))
     path.mkdir(parents=True, exist_ok=True)
 
 
@@ -129,8 +131,8 @@ def main(m, date_tm, times=None):
     for t in times:
         if t > gs.TM_STGS['max']:
             break
-
-        regrid_file = date_tm.strftime(f'{gs.DIR}models/{m}/%Y%m%d%H/ens_{m}_{t:03}.grib2')
+        regrid_str = date_tm.strftime(f'{gs.DIR}/models/{m}/%Y%m%d%H/ens_{m}_{t:03}.grib2')
+        regrid_file = pathlib.Path(regrid_str)
         if os.path.isfile(regrid_file):
             continue
 
@@ -150,7 +152,8 @@ def main(m, date_tm, times=None):
             for t in threads:
                 t.join()
             if idx == 0:
-                download_folder = date_tm.strftime(f'{gs.DIR}models/{m}/%Y%m%d%H/*')
+                download_folder_str = date_tm.strftime(f'{gs.DIR}/models/{m}/%Y%m%d%H/*')
+                download_folder = pathlib.Path(download_folder_str)
                 if not check_downloads(download_folder, MAX_DOWNLOADS):
                     break
 

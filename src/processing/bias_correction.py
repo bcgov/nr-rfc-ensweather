@@ -2,6 +2,7 @@ from datetime import datetime as dt, timedelta
 import os
 import subprocess
 import sys
+import pathlib
 import platform
 if platform.system() == 'Windows':
     splitter = '\\'
@@ -31,11 +32,16 @@ def get_observations(date_tm):
     Returns:
         pd.DataFrame: Observational data stored in pandas dataframe
     """
-    df = pd.read_csv(f'{gs.DIR}resources/climate_obs_{date_tm.year}.csv')
+    
+    climate_path_str = f'{gs.DIR}/resources/climate_obs_{date_tm.year}.csv'
+    climate_path = pathlib.Path(climate_path_str)
+    df = pd.read_csv(climate_path_str)
     df['DATE'] = df['DATE'].apply(pd.to_datetime)
     start_bias = date_tm - timedelta(days=gs.BIAS_DAYS)
     if start_bias.year != date_tm.year:
-        df_two = pd.read_csv(f'{gs.DIR}resources/climate_obs_{start_bias.year}.csv')
+        clim_obs_path_str = f'{gs.DIR}/resources/climate_obs_{start_bias.year}.csv'
+        clim_obj_path = pathlib.Path(clim_obs_path_str)
+        df_two = pd.read_csv(clim_obj_path)
         df = df.append(df_two)
     df = df.loc[df['DATE'] >= start_bias]
     return df
@@ -107,7 +113,8 @@ def get_forecast(forecast_time, model, new_forecast):
                       # We include the extra 18 hours to ensure we have full days to aggregate
         hour_data = {}
         try:
-            path = forecast_time.strftime(f'{gs.DIR}models/{model}/%Y%m%d%H/ens_{model}_{hour:03}.grib2')
+            pathStr = forecast_time.strftime(f'{gs.DIR}/models/{model}/%Y%m%d%H/ens_{model}_{hour:03}.grib2')
+            path = pathlib.Path(pathStr)
             if check_file(path):
                 names, messages = get_messages(path, model)
                 for name, message in zip(names, messages):
@@ -253,10 +260,13 @@ def reformat_to_csv(forecast, date_tm):
     dfs = []
     folder = date_tm.strftime('%Y-%m-%d')
     forecast['datetime'] = forecast['datetime'].apply(lambda x: x.strftime('%Y-%m-%d'))
-    os.makedirs(f'{gs.DIR}/output/daily_raw', exist_ok=True)
-    os.makedirs(f'{gs.DIR}/output/forecasts', exist_ok=True)
+    daily_dir = pathlib.Path(f'{gs.DIR}/output/daily_raw')
+    os.makedirs(daily_dir, exist_ok=True)
+    forecast_dir = pathlib.Path(f'{gs.DIR}/output/forecasts')
+    os.makedirs(forecast_dir, exist_ok=True)
 
-    writer = pd.ExcelWriter(f'{gs.DIR}/output/daily_raw/{folder}.xlsx')
+    xl_writer_path = pathlib.Path(f'{gs.DIR}/output/daily_raw/{folder}.xlsx')
+    writer = pd.ExcelWriter(xl_writer_path)
     for stn in sorted(list(stns)):
         df = forecast.loc[forecast['stn_id'] == stn, cols].set_index('datetime', drop=True)
         rename = {i: f'{stn.upper()}_{i}' for i in cols if i != 'datetime'}

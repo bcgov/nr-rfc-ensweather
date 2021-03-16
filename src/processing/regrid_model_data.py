@@ -1,4 +1,5 @@
 import os
+import pathlib
 import subprocess
 import sys
 from glob import glob
@@ -42,28 +43,29 @@ def ensemble_regrid(date_tm, model, stations):
         model (str): Model name
     """
     station_locations = convert_location_to_wgrib2(stations)
-
-    folder = date_tm.strftime(f'{gs.DIR}models/{model}/%Y%m%d%H/')
+    folder_str = date_tm.strftime(f'{gs.DIR}/models/{model}/%Y%m%d%H/')
+    folder = pathlib.Path(folder_str)
     for hour in ms.models[model]['times']:
-        regrid_file = date_tm.strftime(f'{gs.DIR}models/{model}/%Y%m%d%H/ens_{model}_{hour:03}.grib2')
+        regrid_file_str = date_tm.strftime(f'{gs.DIR}/models/{model}/%Y%m%d%H/ens_{model}_{hour:03}.grib2')
+        regrid_file = pathlib.Path(regrid_file_str)
         if os.path.isfile(regrid_file):
             continue
 
         # concatenate all hourly variable files into one grid
-        cmd = f'cat {folder}*_P{hour:03}_*.grib2 > {folder}cat_{model}_{hour:03}.grib2'
+        cmd = f'cat {folder}/*_P{hour:03}_*.grib2 > {folder}/cat_{model}_{hour:03}.grib2'
         subprocess.call(cmd, shell=True)
 
         # regrid cat file to station locations
-        cmd = f'{gs.WGRIB2} {folder}cat_{model}_{hour:03}.grib2 -new_grid location {station_locations} 0 {folder}regrid_{model}_{hour:03}.grib2'
+        cmd = f'{gs.WGRIB2} {folder}/cat_{model}_{hour:03}.grib2 -new_grid location {station_locations} 0 {folder}/regrid_{model}_{hour:03}.grib2'
         subprocess.call(cmd, shell=True)
 
         # ensemble process grid to final ens_grid
-        cmd = f'{gs.WGRIB2} {folder}regrid_{model}_{hour:03}.grib2 -ens_processing {folder}ens_{model}_{hour:03}.grib2 0'
+        cmd = f'{gs.WGRIB2} {folder}/regrid_{model}_{hour:03}.grib2 -ens_processing {folder}/ens_{model}_{hour:03}.grib2 0'
         subprocess.call(cmd, shell=True)
 
         # delete temporary files and ensemble files that are too small
-        files = glob(date_tm.strftime(f'{folder}*{hour:03}_allmbrs.grib2'))
-        files += glob(f'{folder}*{hour:03}.grib2')
+        files = glob(date_tm.strftime(f'{folder}/*{hour:03}_allmbrs.grib2'))
+        files += glob(f'{folder}/*{hour:03}.grib2')
         ensemble_files = [i for i in files if 'ens_' in i]
         files = [i for i in files if 'ens_' not in i]
         for i in files:

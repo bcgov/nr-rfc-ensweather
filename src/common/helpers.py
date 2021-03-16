@@ -1,6 +1,7 @@
 import datetime as dt
 import os
 import sys
+import pathlib
 
 import numpy as np
 import pandas as pd
@@ -51,7 +52,8 @@ def free_range(start, stop, step):
 
 
 def get_stations():
-    stations = pd.read_csv(f'{gs.DIR}resources/stations.csv')
+    stations_path = pathlib.Path(f'{gs.DIR}/resources/stations.csv')
+    stations = pd.read_csv(stations_path)
     return stations
 
 
