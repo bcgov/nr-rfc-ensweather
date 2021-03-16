@@ -35,7 +35,7 @@ def get_observations(date_tm):
     
     climate_path_str = f'{gs.DIR}/resources/climate_obs_{date_tm.year}.csv'
     climate_path = pathlib.Path(climate_path_str)
-    df = pd.read_csv(climate_path_str)
+    df = pd.read_csv(climate_path)
     df['DATE'] = df['DATE'].apply(pd.to_datetime)
     start_bias = date_tm - timedelta(days=gs.BIAS_DAYS)
     if start_bias.year != date_tm.year:
