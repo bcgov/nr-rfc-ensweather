@@ -304,6 +304,7 @@ def collect_forecasts(date_tm, days_back, model):
     """
     forecasts = []
     for forecast_time in free_range(date_tm, date_tm - timedelta(days=days_back), timedelta(days=-1)):
+        LOGGER.debug(f"forcast_time: {forecast_time}")
         forecast = get_forecast(forecast_time, model, date_tm)
         LOGGER.debug(f"forecast: {forecast}")
         if forecast is not None:
