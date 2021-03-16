@@ -1,3 +1,4 @@
+import logging
 import os
 import pathlib
 import shutil
@@ -20,6 +21,7 @@ if base not in sys.path:
 from config import model_settings as ms, general_settings as gs, variable_settings as vs
 from common import helpers as h
 
+LOGGER = logging.getLogger(__name__)
 
 class myThread (threading.Thread):
 
@@ -92,6 +94,7 @@ def make_dir(m, cr: dt):
         None
     """
     path = pathlib.Path(cr.strftime(f'{gs.DIR}/models/{m}/%Y%m%d%H/'))
+    LOGGER.debug(f"creating the path: {path}")
     path.mkdir(parents=True, exist_ok=True)
 
 
@@ -112,6 +115,7 @@ def check_downloads(download_folder, expected, file_size=1000):
         if os.stat(i).st_size > file_size:
             exist += 1
     if exist < expected * (2/3):
+        LOGGER.error('not working')
         print('not working')
         return False
     return True
@@ -134,6 +138,7 @@ def main(m, date_tm, times=None):
         regrid_str = date_tm.strftime(f'{gs.DIR}/models/{m}/%Y%m%d%H/ens_{m}_{t:03}.grib2')
         regrid_file = pathlib.Path(regrid_str)
         if os.path.isfile(regrid_file):
+            LOGGER.debug(f"regrid_file: {regrid_file} exists")
             continue
 
         for v in vs.metvars:
@@ -145,6 +150,7 @@ def main(m, date_tm, times=None):
                                     'fname': res[1]})
 
         # start downloads in batches
+        LOGGER.debug("downloading starting...")
         for idx, i in enumerate(range(0, len(url_list), MAX_DOWNLOADS)):
             threads = [myThread(url, date_tm) for url in url_list[i:i+MAX_DOWNLOADS]]
             for i in threads:
@@ -154,6 +160,7 @@ def main(m, date_tm, times=None):
             if idx == 0:
                 download_folder_str = date_tm.strftime(f'{gs.DIR}/models/{m}/%Y%m%d%H/*')
                 download_folder = pathlib.Path(download_folder_str)
+                LOGGER.debug(f"download_folder: {download_folder}")
                 if not check_downloads(download_folder, MAX_DOWNLOADS):
                     break
 

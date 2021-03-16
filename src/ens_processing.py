@@ -1,9 +1,11 @@
 import argparse
 import contextlib
+import logging.config
 import sys
 import shutil
 from datetime import datetime as dt, timedelta
 from glob import glob
+
 
 import platform
 if platform.system() == 'Windows':
@@ -16,11 +18,14 @@ if base not in sys.path:
     sys.path.append(base)
 
 from config.general_settings import VERSION, BIAS_DAYS, DIR, ALL_TIMES, FILE_SPLITTER
+import config.logging_config
 from config.model_settings import models
 from downloads import download_models
 from processing import regrid_model_data, bias_correction
 from common.helpers import free_range
 
+logging.config.dictConfig(config.logging_config.LOGGING_CONFIG)
+LOGGER = logging.getLogger(__name__)
 
 def get_now():
     """Trivial function created so that it can be mocked in testing
@@ -48,6 +53,7 @@ def find_run_time(args):
 
 def download_needed_runs(run_time):
     for model in models:
+        LOGGER.debug(f"model: {model}")
         for tm in free_range(run_time, run_time - timedelta(days=BIAS_DAYS), timedelta(hours=-12)):
             if tm < run_time - timedelta(days=models[model]['archived_days']):
                 break
@@ -59,15 +65,19 @@ def delete_old_folders():
     now = get_now()
     folders = glob(f'{DIR}/models/*/*')
     for folder in folders:
+        LOGGER.debug(f"folder: {folder}")
         base_name = folder.split(FILE_SPLITTER)[-1]
+        LOGGER.debug(f"base_name: {base_name}")
         tm = dt.strptime(base_name, '%Y%m%d%H')
         if now - timedelta(days=BIAS_DAYS+2, hours=max(ALL_TIMES)) > tm:
+            LOGGER.debug(f"removing the folder: {folder}")
             shutil.rmtree(folder)
 
 
 def main(args):
     if args.process and args.download:
-        print('Process and Download cannot both be set to true.')
+        #print('Process and Download cannot both be set to true.')
+        LOGGER.error('Process and Download cannot both be set to true.')
         return
 
     try:
@@ -75,7 +85,8 @@ def main(args):
         run_time = find_run_time(args)
 
         if not args.process:
-            print('Downloading and Regridding data and missing runs.')
+            LOGGER.info("Downloading and Regridding data and missing runs.")
+            #print('Downloading and Regridding data and missing runs.')
             if not args.verbose:
                 with contextlib.redirect_stdout(None), contextlib.redirect_stderr(None):
                     download_needed_runs(run_time)
@@ -104,5 +115,6 @@ def parse_arguments():
 
 
 if __name__ == '__main__':
+
     args = parse_arguments()
     main(args)

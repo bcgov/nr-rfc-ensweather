@@ -1,4 +1,5 @@
 from datetime import datetime as dt, timedelta
+import logging
 import os
 import subprocess
 import sys
@@ -22,6 +23,7 @@ import config.variable_settings as vs
 from config.model_settings import models
 from common.helpers import free_range, get_stations
 
+LOGGER = logging.getLogger(__name__)
 
 def get_observations(date_tm):
     """Pull observational data from stored csv files

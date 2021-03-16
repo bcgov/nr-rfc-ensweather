@@ -21,6 +21,6 @@ setup.log
 setup.log.full
 tmp
 
-junk.txt
 cicd/junk
 cicd/artifacts
+junk*

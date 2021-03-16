@@ -3,7 +3,7 @@ LOGGING_CONFIG = {
     'disable_existing_loggers': True,
     'formatters': { 
         'standard': { 
-            'format': '%(asctime)s [%(levelname)s] %(name)s {%(pathname)s:%(lineno)d} : %(message)s'
+            'format': '%(asctime)s [%(levelname)s] %(name)s {%(module)s:%(lineno)d} : %(message)s'
         },
     },
     'handlers': { 
@@ -22,7 +22,17 @@ LOGGING_CONFIG = {
         },
         'ens_processing': { 
             'handlers': ['default'],
-            'level': 'INFO',
+            'level': 'DEBUG',
+            'propagate': False
+        },
+        'processing.bias_correction.': { 
+            'handlers': ['default'],
+            'level': 'DEBUG',
+            'propagate': False
+        },
+        'processing.regrid_model_data': { 
+            'handlers': ['default'],
+            'level': 'DEBUG',
             'propagate': False
         },
         '__main__': {  # if __name__ == '__main__'

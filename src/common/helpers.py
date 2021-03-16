@@ -2,6 +2,7 @@ import datetime as dt
 import os
 import sys
 import pathlib
+from ens_processing import LOGGER
 
 import numpy as np
 import pandas as pd
@@ -75,4 +76,6 @@ def fmt_orig_fn(rt, tm, m, lev=None, var=None):
         'grib_name': var[0] if var is not None else '',
     }
     if m == 'geps':
-        return (rt.strftime(ms.models['geps']['url'].format(**kwargs)), rt.strftime(ms.models['geps']['fn'].format(**kwargs)))
+        geps_url = (rt.strftime(ms.models['geps']['url'].format(**kwargs)), rt.strftime(ms.models['geps']['fn'].format(**kwargs)))
+        LOGGER.debug(f'geps_url: {geps_url}') 
+        return geps_url
