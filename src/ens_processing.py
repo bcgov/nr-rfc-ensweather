@@ -47,8 +47,9 @@ def find_run_time(args):
             now = now.replace(hour=0)
         else:
             now = now.replace(hour=12)
-
-        return dt(now.year, now.month, now.day, now.hour)
+        run_time = dt(now.year, now.month, now.day, now.hour)
+        LOGGER.debug(f"run_time: {run_time}")
+        return run_time
 
 
 def download_needed_runs(run_time):
@@ -63,6 +64,7 @@ def download_needed_runs(run_time):
 
 
 def delete_old_folders():
+    LOGGER.debug("checking folders to delete")
     now = get_now()
     folders = glob(f'{DIR}/models/*/*')
     for folder in folders:

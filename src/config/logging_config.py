@@ -17,7 +17,7 @@ LOGGING_CONFIG = {
     'loggers': { 
         '': {  # root logger
             'handlers': ['default'],
-            'level': 'INFO',
+            'level': 'DEBUG',
             'propagate': False
         },
         'ens_processing': { 
