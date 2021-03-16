@@ -25,7 +25,7 @@ LOGGING_CONFIG = {
             'level': 'DEBUG',
             'propagate': False
         },
-        'processing.bias_correction.': { 
+        'processing.bias_correction': { 
             'handlers': ['default'],
             'level': 'DEBUG',
             'propagate': False
