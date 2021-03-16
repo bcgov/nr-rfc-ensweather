@@ -309,6 +309,7 @@ def collect_forecasts(date_tm, days_back, model):
         forecast = get_forecast(forecast_time, model, date_tm)
         LOGGER.debug(f"forecast: {forecast}")
         if forecast is not None:
+            LOGGER.debug("adding forcast")
             forecasts.append(forecast)
     LOGGER.debug(f"forcasts are: {forecasts}")
     prev_forecasts = pd.concat(forecasts, sort=True)
