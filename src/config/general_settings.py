@@ -10,7 +10,9 @@ MAX_HOURS = 9999
 DIR = os.environ['ENS_WEATHER_DATA']
 
 # the path to where the source code exists
-SRCDIR = os.environ[]
+# could assume if this env var isn't set that the 
+# path is the dir in __file__
+SRCDIR = os.environ['ENS_HOME']
 
 # WGRIB2 = /path/to/wgrib2/executable
 WGRIB2 = os.environ['WGRIB2EXEC']
