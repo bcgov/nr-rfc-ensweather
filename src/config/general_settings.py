@@ -6,7 +6,11 @@ import os
 MAX_HOURS = 9999
 
 # DIR = /path/to/project/repository
+# path to where the output data goes
 DIR = os.environ['ENS_WEATHER_DATA']
+
+# the path to where the source code exists
+SRCDIR = os.environ[]
 
 # WGRIB2 = /path/to/wgrib2/executable
 WGRIB2 = os.environ['WGRIB2EXEC']

@@ -52,7 +52,7 @@ def free_range(start, stop, step):
 
 
 def get_stations():
-    stations_path = pathlib.Path(f'{gs.DIR}/resources/stations.csv')
+    stations_path = pathlib.Path(f'{gs.SRCDIR}/resources/stations.csv')
     stations = pd.read_csv(str(stations_path))
     return stations
 
