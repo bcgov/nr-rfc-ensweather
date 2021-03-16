@@ -123,7 +123,7 @@ def get_forecast(forecast_time, model, new_forecast):
         try:
             pathStr = forecast_time.strftime(f'{gs.DIR}/models/{model}/%Y%m%d%H/ens_{model}_{hour:03}.grib2')
             path = pathlib.Path(pathStr)
-            LOGGER.debug(f"forecast: {path}")
+            LOGGER.debug(f"forecast path: {path}")
             if check_file(path):
                 names, messages = get_messages(path, model)
                 for name, message in zip(names, messages):
@@ -134,6 +134,7 @@ def get_forecast(forecast_time, model, new_forecast):
             continue
         hour_data['forecast'] = [forecast_time] * hour_data['t_max_mean'].shape[0]
         hour_data['datetime'] = [forecast_time + timedelta(hours=hour)] * hour_data['t_max_mean'].shape[0]
+        LOGGER.debug(f"hour data: {hour_data}")
         dfs.append(pd.DataFrame(hour_data))
     if not dfs:
         return
