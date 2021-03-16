@@ -126,10 +126,10 @@ def get_forecast(forecast_time, model, new_forecast):
             if check_file(path):
                 names, messages = get_messages(path, model)
                 for name, message in zip(names, messages):
-                    hour_data[name] = access_grib(path, message)
+                    hour_data[name] = access_grib(str(path), message)
         except Exception as e:
             # Kinda bad to just catch global exception
-            LOGGER.error(f"error: {e.message}")
+            LOGGER.error(f"error: {e}")
             continue
         if not hour_data:
             continue
