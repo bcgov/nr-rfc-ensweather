@@ -30,6 +30,7 @@ class myThread (threading.Thread):
         self.lock = threading.Lock()
         self.url = url
         self.cr = cr
+        LOGGER.debug(f"url: {url}")
 
     def run(self):
         sName = self.url['fname']
@@ -151,6 +152,7 @@ def main(m, date_tm, times=None):
                                     'fname': res[1]})
 
         # start downloads in batches
+        LOGGER.debug(f"url_list: {url_list}")
         LOGGER.debug("downloading starting...")
         for idx, i in enumerate(range(0, len(url_list), MAX_DOWNLOADS)):
             threads = [myThread(url, date_tm) for url in url_list[i:i+MAX_DOWNLOADS]]
