@@ -97,7 +97,6 @@ def access_grib(path, message):
 
 
 def check_file(path):
-    LOGGER.debug(f"path: {path}")
     return os.path.isfile(path)
 
 
@@ -129,6 +128,8 @@ def get_forecast(forecast_time, model, new_forecast):
                 for name, message in zip(names, messages):
                     hour_data[name] = access_grib(path, message)
         except Exception as _:
+            # Kinda bad to just catch global exception
+            LOGGER.error(_.message)
             continue
         if not hour_data:
             continue
