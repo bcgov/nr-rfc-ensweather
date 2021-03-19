@@ -73,8 +73,11 @@ def get_messages(path, model):
                 if f"{meta['ensemble_percentiles'][1]}" in i:
                     messages.append(int(i.split(':')[0]))
                     names.append(f'{key}_upper_percentile')
-    names.extend(['lon', 'lat'])
-    messages.extend([3, 12])
+    for key, name in zip(['GEOLON', 'GEOLAT'], ['lon', 'lat']):
+        for i in res:
+            if key in i and 'ens mean' in i:
+                names.append(name)
+                messages.append(int(i.split(':')[0]))
     return names, messages
 
 
