@@ -18,17 +18,25 @@ import numpy as np
 '''
 
 excel_variable_order = ['t_max', 't_min', 'precip']
+suffix_order =  ['mean', 'median', 'max', 'min', 'upper_percentile', 'lower_percentile']
 
 metvars = {
     'precip': {
         'mod': {
             'geps': ['APCP_SFC_0', 'APCP', 'surface'],
         },
-        'ensemble_percentiles': [25, 75],
+        'ensemble_values': {
+            'ens mean': '_mean',
+            50: '_median',
+            25: '_lower_percentile',
+            75: '_upper_percentile',
+            'max all members': '_max',
+            'min all members': '_min',
+        },
         'utc_time_start': 6,  # 6 hours after 0z run
         'time_range_length': 24,  # 24 hour sum
         'expected_values': 4,
-        'aggregate_function': np.sum,
+        'aggregate_function': np.nansum,
         'unit_offset': 0,
         'correction': 'ratio',
     },
@@ -36,11 +44,18 @@ metvars = {
         'mod': {
             'geps': ['TMAX_TGL_2m', 'TMAX', '2 m above ground'],
         },
-        'ensemble_percentiles': [25, 75],
+        'ensemble_values': {
+            'ens mean': '_mean',
+            50: '_median',
+            25: '_lower_percentile',
+            75: '_upper_percentile',
+            'max all members': '_max',
+            'min all members': '_min',
+        },
         'utc_time_start': 12,  # 12 hours after 0z run
         'time_range_length': 12,  # morning to evening max
         'expected_values': 2,
-        'aggregate_function': np.max,
+        'aggregate_function': np.nanmax,
         'unit_offset': 273.15,
         'correction': 'difference',
     },
@@ -48,11 +63,18 @@ metvars = {
         'mod': {
             'geps': ['TMIN_TGL_2m', 'TMIN', '2 m above ground'],
         },
-        'ensemble_percentiles': [25, 75],
+        'ensemble_values': {
+            'ens mean': '_mean',
+            50: '_median',
+            25: '_lower_percentile',
+            75: '_upper_percentile',
+            'max all members': '_max',
+            'min all members': '_min',
+        },
         'utc_time_start': 24,  # 24 hours after 0z run
         'time_range_length': 12, # evening to next morning min
         'expected_values': 2,
-        'aggregate_function': np.min,
+        'aggregate_function': np.nanmin,
         'unit_offset': 273.15,
         'correction': 'difference',
     },

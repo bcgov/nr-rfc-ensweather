@@ -70,8 +70,9 @@ class Test_Unit:
                      'lon',
                      'lat']
         exp_messages = [1, 30, 4, 6, 7, 8, 10, 11, 14, 3, 12]
-        assert names == exp_names
-        assert messages == exp_messages
+        ret = dict(zip(names, messages))
+        exp = dict(zip(exp_names, exp_messages))
+        assert ret == exp
 
     def test_get_forecast(self, monkeypatch):
         def access_grib(path, message):
@@ -413,7 +414,34 @@ class Test_Unit:
         ret = bc.attach_station_ids(forecasts, stations).sort_values(['stn_id', 'lat', 'lon']).reset_index(drop=True)
         assert_frame_equal(ret, exp, check_like=True)
 
-    def test_correct_data(self):
+    def test_correct_data(self, monkeypatch):
+        metvars = {
+            'precip': {
+                'correction': 'ratio',
+                'ensemble_values': {
+                    1: '_mean',
+                    2: '_upper_percentile',
+                    3: '_lower_percentile',
+                },
+            },
+            't_max': {
+                'correction': 'difference',
+                'ensemble_values': {
+                    1: '_mean',
+                    2: '_upper_percentile',
+                    3: '_lower_percentile',
+                },
+            },
+            't_min': {
+                'correction': 'difference',
+                'ensemble_values': {
+                    1: '_mean',
+                    2: '_upper_percentile',
+                    3: '_lower_percentile',
+                },
+            },
+        }
+        monkeypatch.setattr(bc.vs, 'metvars', metvars)
         forecast = pd.DataFrame({
             't_max_mean': [10, 20, 30],
             't_max_upper_percentile': [15, 22, 37],
@@ -564,7 +592,18 @@ class Test_Unit:
         ret = bc.adjust_bias_to_count(biases, counts, correction, 'bias')
         assert_frame_equal(ret, exp, check_like=True)
 
-    def test_normalize_precip(self):
+    def test_normalize_precip(self, monkeypatch):
+        metvars = {
+            'precip': {
+                'correction': 'ratio',
+                'ensemble_values': {
+                    1: '_mean',
+                    2: '_upper_percentile',
+                    3: '_lower_percentile',
+                },
+            },
+        }
+        monkeypatch.setattr(bc.vs, 'metvars', metvars)
         df = pd.DataFrame({
             'precip_mean': [1, 2, 3, 2, 3.5, 5.5],
             'precip_lower_percentile': [0, 1, 1, 1.5, 2.5, 4.5],

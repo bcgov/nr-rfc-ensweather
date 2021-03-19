@@ -62,17 +62,12 @@ def get_messages(path, model):
     names = []
     messages = []
     for key, meta in vs.metvars.items():
-        for i in res:
-            if meta['mod'][model][1] in i:
-                if 'ens mean' in i:
-                    messages.append(int(i.split(':')[0]))
-                    names.append(f'{key}_mean')
-                if f"{meta['ensemble_percentiles'][0]}%" in i:
-                    messages.append(int(i.split(':')[0]))
-                    names.append(f'{key}_lower_percentile')
-                if f"{meta['ensemble_percentiles'][1]}" in i:
-                    messages.append(int(i.split(':')[0]))
-                    names.append(f'{key}_upper_percentile')
+        for grib_id, suffix in meta['ensemble_values'].items():
+            for i in res:
+                if meta['mod'][model][1] in i:
+                    if str(grib_id) in i:
+                        messages.append(int(i.split(':')[0]))
+                        names.append(f'{key}{suffix}')
     for key, name in zip(['GEOLON', 'GEOLAT'], ['lon', 'lat']):
         for i in res:
             if key in i and 'ens mean' in i:
@@ -234,7 +229,7 @@ def correct_data(forecast):
         forecast (pd.DataFrame): Forecast data
     """
     for key, meta in vs.metvars.items():
-        for suffix in ['_mean', '_lower_percentile', '_upper_percentile']:
+        for suffix in meta['ensemble_values'].values():
             key_suffix = f'{key}{suffix}'
             if meta['correction'] == 'ratio':
                 forecast.loc[~forecast[f'bias_{key}_mean'].isna(), key_suffix] /= forecast.loc[~forecast[f'bias_{key}_mean'].isna(), f'bias_{key}_mean']
@@ -251,7 +246,7 @@ def reformat_to_csv(forecast, date_tm):
         date_tm (dt): Time of the current forecast
     """
     stns = set(forecast['stn_id'].values)
-    cols = [f'{i}_{j}' for i in vs.excel_variable_order for j in ['mean', 'upper_percentile', 'lower_percentile']]
+    cols = [f'{i}{j}' for i in vs.excel_variable_order for j in vs.metvars[i]['ensemble_values'].values()]
     cols.append('datetime')
     dfs = []
     folder = date_tm.strftime('%Y-%m-%d')
@@ -268,7 +263,7 @@ def reformat_to_csv(forecast, date_tm):
         dfs.append(df)
     writer.save()
     final = pd.concat(dfs, axis=1, sort=True)
-    cols = [i for i in final if i.endswith('mean')]
+    cols = [i for i in final if i.endswith(gs.FORECAST_COLUMN)]
     final = final[cols]
     rename = {i: f'{i[:-5]}' for i in cols}
     final.rename(columns=rename, inplace=True)
@@ -345,7 +340,7 @@ def normalize_precip(forecast):
     copy = copy.loc[copy['agg_day'] < last_day]
     copy['agg_day'] += 1
     copy.set_index(['stn_id', 'agg_day'], inplace=True, drop=True)
-    for suffix in ['_mean', '_upper_percentile', '_lower_percentile']:
+    for suffix in vs.metvars['precip']['ensemble_values'].values():
         forecast.loc[copy.index, f'precip{suffix}'] -= copy.loc[copy.index, f'precip{suffix}']
     forecast.reset_index(drop=False, inplace=True)
 

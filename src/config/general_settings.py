@@ -9,6 +9,8 @@ DIR = ''
 
 # WGRIB2 = /path/to/wgrib2/executable
 WGRIB2 = ''
+# Which value should ultimately be used for the final forecast
+FORECAST_COLUMN = 'median'
 
 
 import platform
@@ -40,6 +42,7 @@ DM = {
 
 # For testing purposes, archived run can be used to run individual modules with this run
 ARCHIVED_RUN = dt(2021, 2, 22, 12)
+
 
 # Number of download retries if failures occur
 MAX_RETRIES = 3
