@@ -37,6 +37,8 @@ class Test_Unit:
     def test_get_message(self, monkeypatch):
         def fake_pipe(cmd):
             return '''
+            \n3:GEOLON:ens mean:nothing
+            \n12:GEOLAT:ens mean:nothing
             \n0:APCP:surface:ens max:nothing
             \n1:APCP:ens mean:nothing
             \n2:APCP:10%:nothing
@@ -297,6 +299,7 @@ class Test_Unit:
         # current forecast, unless if there is observational data present.
         # Future runs will have at least one forecast with the current station available and
         # will behave as the test (test_attach_station_ids_new_station)
+        # test write ability
         forecasts = pd.DataFrame({
             'lon': [-112, -114, -112, -114],
             'lat': [50, 51, 50, 51],
