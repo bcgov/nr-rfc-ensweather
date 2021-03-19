@@ -564,6 +564,23 @@ class Test_Unit:
         ret = bc.adjust_bias_to_count(biases, counts, correction, 'bias')
         assert_frame_equal(ret, exp, check_like=True)
 
+    def test_normalize_precip(self):
+        df = pd.DataFrame({
+            'precip_mean': [1, 2, 3, 2, 3.5, 5.5],
+            'precip_lower_percentile': [0, 1, 1, 1.5, 2.5, 4.5],
+            'precip_upper_percentile': [2, 4, 6, 2.5, 5.5, 8],
+            'stn_id': [1, 1, 1, 2, 2, 2],
+            'agg_day': [0, 1, 2, 0, 1, 2],
+        })
+        exp = pd.DataFrame({
+            'precip_mean': [1, 1, 1, 2, 1.5, 2],
+            'precip_lower_percentile': [0, 1, 0, 1.5, 1, 2],
+            'precip_upper_percentile': [2, 2, 2, 2.5, 3, 2.5],
+            'stn_id': [1, 1, 1, 2, 2, 2],
+            'agg_day': [0, 1, 2, 0, 1, 2],
+        })
+        bc.normalize_precip(df)
+        assert_frame_equal(df, exp, check_like=True)
 
 @pytest.mark.pre_commit
 class Test_Pre_Commit:

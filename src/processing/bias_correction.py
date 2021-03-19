@@ -338,6 +338,18 @@ def find_aggregate_values(prev_forecasts, date_tm):
     return prev_forecasts
 
 
+def normalize_precip(forecast):
+    last_day = forecast['agg_day'].max()
+    copy = forecast.copy()
+    forecast.set_index(['stn_id', 'agg_day'], inplace=True, drop=True)
+    copy = copy.loc[copy['agg_day'] < last_day]
+    copy['agg_day'] += 1
+    copy.set_index(['stn_id', 'agg_day'], inplace=True, drop=True)
+    for suffix in ['_mean', '_upper_percentile', '_lower_percentile']:
+        forecast.loc[copy.index, f'precip{suffix}'] -= copy.loc[copy.index, f'precip{suffix}']
+    forecast.reset_index(drop=False, inplace=True)
+
+
 def main(date_tm):
     stations = get_stations()
     stations.rename(columns={'latitude': 'lat', 'longitude': 'lon'}, inplace=True)
@@ -362,9 +374,11 @@ def main(date_tm):
         forecast = find_aggregate_values(forecast, date_tm)
 
         observations = reformat_obs(stations, observations)
-
         prev_forecasts = attach_station_ids(prev_forecasts, stations.copy())
         forecast = attach_station_ids(forecast, stations.copy())
+
+        normalize_precip(prev_forecasts)
+        normalize_precip(forecast)
 
         forecast['day'] = forecast.apply(lambda x: (x.datetime - x.forecast).total_seconds() / (3600 * 24), axis=1)
         forecast.set_index(['stn_id', 'day'], drop=True, inplace=True)
