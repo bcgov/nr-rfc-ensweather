@@ -251,7 +251,7 @@ def reformat_to_csv(forecast, date_tm):
         date_tm (dt): Time of the current forecast
     """
     stns = set(forecast['stn_id'].values)
-    cols = [f'{i}_{j}' for i in vs.metvars.keys() for j in ['mean', 'upper_percentile', 'lower_percentile']]
+    cols = [f'{i}_{j}' for i in vs.excel_variable_order for j in ['mean', 'upper_percentile', 'lower_percentile']]
     cols.append('datetime')
     dfs = []
     folder = date_tm.strftime('%Y-%m-%d')

@@ -17,6 +17,8 @@ import numpy as np
     },
 '''
 
+excel_variable_order = ['t_max', 't_min', 'precip']
+
 metvars = {
     'precip': {
         'mod': {
