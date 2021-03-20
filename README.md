@@ -61,6 +61,7 @@ The forecast file contains all stations on a single sheet, with only the mean va
 
 The ensemble processing script is executed from the command line. To start a run, the user activates their conda environment and then executes the python script. In its simplest form, the script is executed without any arguments to process the latest GEPS forecast. However, there are some arguments available to control the program:
 
+```
 usage: python src/ens_processing.py [-h] [-v] [-V] [-r RUN] [-d] [-p]
 
 Main program for ensemble model processing.
@@ -69,9 +70,10 @@ optional arguments:
   -h, --help         show this help message and exit
   -v, --version      show program's version number and exit
   -V, --verbose      Do not silence terminal output.
-  -r RUN, --run RUN  Specify run to forecast.
+  -r RUN, --run RUN  Specify run to forecast. Format is YYYYMMDD_HH
   -d, --download     Only download, do not process.
   -p, --process      Only process, do not download.
+```
 
 ## Examples
 The program can be run on a schedule (e.g. using cron), or executed manually. Here is an example of running all aspects of the program for the most recent cycle of the GEPS.
