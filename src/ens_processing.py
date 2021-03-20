@@ -36,9 +36,9 @@ def find_run_time(args):
         return dt.strptime(args.run, '%Y%m%d_%H')
     else:
         now = get_now()
-        if now.hour < 4:
+        if now.hour < 6:
             now = (now - timedelta(days=1)).replace(hour=12)
-        elif now.hour <= 16:
+        elif now.hour <= 18:
             now = now.replace(hour=0)
         else:
             now = now.replace(hour=12)
