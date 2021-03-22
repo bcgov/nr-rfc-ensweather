@@ -47,6 +47,8 @@ Before first usage, in src/config/general_settings:
 
 Beyond that, the user may choose to adjust BIAS_DAYS to include more or fewer days in the bias correction, and may also adjust MAX_HOURS if they wish to reduce the number of days in which to forecast. MAX_HOURS could also be increased if the GEPS model increased in it's runtime.
 
+Additionally, FORECAST_COLUMN denotes the column used to calculate biases for old forecasts, and can be any of RAW_COLUMNS, although median or mean is recommended. RAW_COLUMNS denotes all aggregate columns included in the daily raw files. Simply remove whichever columns are not needed.
+
 ### New Stations
 
 Within the resources folder, the stations csv contains all stations for which a forecast is created. To add a new station, simply fill in the required fields in this csv. The entered station must also be found in the observational data sheet in order to be used.

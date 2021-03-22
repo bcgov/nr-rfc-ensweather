@@ -24,6 +24,8 @@ models = {
         'times': list(range(6, 385, 6)),
         # download timeout (in seconds)
         'timeout': 30,
+        # number of ensemble members included in model statistics
+        'ensemble_members': 20,
     },
 }
 

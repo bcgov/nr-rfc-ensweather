@@ -12,6 +12,12 @@ WGRIB2 = ''
 # Which value should ultimately be used for the final forecast
 FORECAST_COLUMN = 'median'
 
+# Which statistical columns are wanted in the daily raw file
+# OPTIONS are ['lower_percentile', 'upper_percentile', 'median', 'mean', 'max', 'min']
+RAW_COLUMNS = ['lower_percentile', 'upper_percentile', 'median', 'mean', 'max', 'min']
+
+EXCEL_VARIABLE_ORDER = ['t_max', 't_min', 'precip']
+
 
 import platform
 if platform.system() == 'Windows':
@@ -41,7 +47,7 @@ DM = {
 }
 
 # For testing purposes, archived run can be used to run individual modules with this run
-ARCHIVED_RUN = dt(2021, 2, 22, 12)
+ARCHIVED_RUN = dt(2021, 3, 20, 12)
 
 
 # Number of download retries if failures occur

@@ -125,7 +125,7 @@ class Test_Unit:
         monkeypatch.setattr(bc, 'get_messages', get_messages)
         monkeypatch.setattr(bc, 'check_file', check_file)
         monkeypatch.setattr(bc.gs, 'BIAS_DAYS', 10)
-        monkeypatch.setattr(bc.gs, 'ALL_TIMES', [i for i in gs.ALL_TIMES if i <= 240])
+        monkeypatch.setattr(bc.gs, 'ALL_TIMES', list(range(6, 241, 6)))
 
         data = bc.get_forecast(dt(2020, 1, 1, 0), 'geps', dt(2020, 1, 20, 0)).reset_index(drop=True)
 
@@ -139,12 +139,47 @@ class Test_Unit:
         })
         assert_frame_equal(data, exp, check_like=True)
 
+    def test_correct_forecast(self, monkeypatch):
+        models = {
+            'geps': {
+                'ensemble_members': 2
+            },
+        }
+        monkeypatch.setattr(bc, 'models', models)
+        forecast = pd.DataFrame({
+            'precip_max': [1.1, 2.2, 3.3, 4.4],
+            't_max_mean': [0.5, 10.2, 11.1, 14.2],
+            't_min_min': [-1.2, -1, 1, 2],
+            'datetime': [1, 1, 2, 2],
+            'stn_id': [1, 2, 1, 2],
+        })
+        raw_forecasts = pd.DataFrame({
+            'precip_1': [1.13, 2.1, 3.3, 4.2],
+            'precip_2': [0.5, 2.0, 2.1, 4.4],
+            't_max_1': [1.0, 10, 11, 14],
+            't_max_2': [0.0, 10.5, 11.3, 14.4],
+            't_min_1': [-1.22, -1.0, 1.5, 2.5],
+            't_min_2': [-0.5, -0.5, 1.5, 2],
+            'datetime': [1, 1, 2, 2],
+            'stn_id': [1, 2, 1, 2],
+        })
+        ret = bc.correct_forecast(forecast, raw_forecasts, 'geps')
+        exp = pd.DataFrame({
+            'precip_max': [1.13, 2.1, 3.3, 4.4],
+            't_max_mean': [0.5, 10.25, 11.15, 14.2],
+            't_min_min': [-1.22, -1, 1.5, 2],
+            'datetime': [1, 1, 2, 2],
+            'stn_id': [1, 2, 1, 2],
+        })
+        assert_frame_equal(ret, exp, check_like=True)
+
     def test_calculate_biases(self, monkeypatch):
 
         def adjust_bias_to_count(biases, *args):
             return biases
 
         monkeypatch.setattr(bc, 'adjust_bias_to_count', adjust_bias_to_count)
+        monkeypatch.setattr(bc.gs, 'FORECAST_COLUMN', 'mean')
 
         df = pd.DataFrame({
             'stn_id': ['A', 'A', 'A', 'A'],
@@ -170,6 +205,7 @@ class Test_Unit:
 
     def test_calculate_biases_missing_observational(self, monkeypatch):
         monkeypatch.setattr(bc.gs, 'BIAS_DAYS', 2)
+        monkeypatch.setattr(bc.gs, 'FORECAST_COLUMN', 'mean')
         df = pd.DataFrame({
             'stn_id': ['A', 'A', 'A', 'A'],
             'forecast_day': [1, 1, 2, 2],
@@ -196,6 +232,7 @@ class Test_Unit:
 
     def test_calculate_biases_with_count(self, monkeypatch):
         monkeypatch.setattr(bc.gs, 'BIAS_DAYS', 4)
+        monkeypatch.setattr(bc.gs, 'FORECAST_COLUMN', 'mean')
         df = pd.DataFrame({
             'stn_id': ['A', 'A', 'A', 'A'],
             'forecast_day': [1, 1, 2, 2],
@@ -442,6 +479,7 @@ class Test_Unit:
             },
         }
         monkeypatch.setattr(bc.vs, 'metvars', metvars)
+        monkeypatch.setattr(bc.gs, 'FORECAST_COLUMN', 'mean')
         forecast = pd.DataFrame({
             't_max_mean': [10, 20, 30],
             't_max_upper_percentile': [15, 22, 37],
@@ -529,7 +567,8 @@ class Test_Unit:
         ret = bc.find_aggregate_values(prev_forecasts, date_tm)
         assert_frame_equal(ret, exp, check_like=True)
 
-    def test_find_aggregate_values_two_day_0z(self):
+    def test_find_aggregate_values_two_day_0z(self, monkeypatch):
+        monkeypatch.setattr(bc.gs, 'ALL_TIMES', list(range(6, 385, 6)))
         date_tm = dt(2021, 1, 10, 0)
         prev_forecasts = pd.DataFrame({
             'lat': [49.9] * 9,
@@ -618,7 +657,7 @@ class Test_Unit:
             'stn_id': [1, 1, 1, 2, 2, 2],
             'agg_day': [0, 1, 2, 0, 1, 2],
         })
-        bc.normalize_precip(df)
+        bc.normalize_precip(df, False)
         assert_frame_equal(df, exp, check_like=True)
 
 @pytest.mark.pre_commit

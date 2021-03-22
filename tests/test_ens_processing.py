@@ -33,8 +33,8 @@ class Test_Unit:
     @pytest.mark.parametrize(
         'run_input, current_time, exp',
         (
-            [None, dt(2020, 1, 1, 18), dt(2020, 1, 1, 12)],
-            [None, dt(2020, 1, 1, 5), dt(2020, 1, 1, 0)],
+            [None, dt(2020, 1, 1, 19), dt(2020, 1, 1, 12)],
+            [None, dt(2020, 1, 1, 7), dt(2020, 1, 1, 0)],
             [None, dt(2020, 1, 1, 1), dt(2019, 12, 31, 12)],
             ['20210101_00', None, dt(2021, 1, 1, 0)],
         )

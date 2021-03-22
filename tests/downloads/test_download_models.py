@@ -1,5 +1,6 @@
 import pytest
 import sys
+import shutil
 import os
 from collections import namedtuple
 from glob import glob
@@ -41,15 +42,23 @@ class Test_Integration:
 
         dm.main('geps', rt, times=[6])
         files = glob(rt.strftime(f'{gs.DIR}integration_test_folder/models/geps/%Y%m%d%H/*'))
-        assert len(files) == 3
-        for i in files:
-            assert os.stat(i).st_size > 1000
-        rg.ensemble_regrid(rt, 'geps', stations)
-        files = glob(rt.strftime(f'{gs.DIR}integration_test_folder/models/geps/%Y%m%d%H/*'))
-        assert len(files) == 1
-        assert os.stat(files[0]).st_size > 1000
-        os.remove(files[0])
-
+        try:
+            assert len(files) == 3
+            for i in files:
+                assert os.stat(i).st_size > 1000
+            rg.ensemble_regrid(rt, 'geps', stations)
+            files = glob(rt.strftime(f'{gs.DIR}integration_test_folder/models/geps/%Y%m%d%H/*'))
+            assert len(files) == 1
+            assert os.stat(files[0]).st_size > 1000
+            os.remove(files[0])
+            files = glob(f'{gs.DIR}/integration_test_folder/tmp/*')
+            assert len(files) == 1
+            os.remove(files[0])
+        except Exception as _:
+            folders = glob(f'{gs.DIR}/integration_test_folder/*')
+            for folder in folders:
+                shutil.rmtree(folder)
+            raise
 
 @pytest.mark.unit
 class Test_Unit:
