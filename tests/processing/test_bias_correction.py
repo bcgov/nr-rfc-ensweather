@@ -34,65 +34,20 @@ class Test_Unit:
     def test_true(self):
         assert True
 
-    def test_get_message(self, monkeypatch):
-        def fake_pipe(cmd):
-            return '''
-            \n3:GEOLON:ens mean:nothing
-            \n12:GEOLAT:ens mean:nothing
-            \n0:APCP:surface:ens max:nothing
-            \n1:APCP:ens mean:nothing
-            \n2:APCP:10%:nothing
-            \n30:APCP:25%:nothing
-            \n4:APCP:75%:nothing
-            \n5:TMAX:ens min:nothing
-            \n6:TMAX:ens mean:nothing
-            \n7:TMAX:75%:nothing
-            \n8:TMAX:25%:nothing
-            \n9:TMIN:ens min:nothing
-            \n10:TMIN:ens mean:nothing
-            \n11:TMIN:75%:nothing
-            \n14:TMIN:25%:nothing
-            '''
-
-        for key, meta in vs.metvars.items():
-            vs.metvars[key]['ensemble_percentiles'] = [25, 75]
-        monkeypatch.setattr(bc, 'open_subprocess_pipe', fake_pipe)
-        names, messages = bc.get_messages('path', 'geps')
-        exp_names = ['precip_mean',
-                     'precip_lower_percentile',
-                     'precip_upper_percentile',
-                     't_max_mean',
-                     't_max_upper_percentile',
-                     't_max_lower_percentile',
-                     't_min_mean',
-                     't_min_upper_percentile',
-                     't_min_lower_percentile',
-                     'lon',
-                     'lat']
-        exp_messages = [1, 30, 4, 6, 7, 8, 10, 11, 14, 3, 12]
-        ret = dict(zip(names, messages))
-        exp = dict(zip(exp_names, exp_messages))
-        assert ret == exp
-
     def test_get_forecast(self, monkeypatch):
-        def access_grib(path, message):
-            if message == 1:
-                return np.array([1, 2, 3]).reshape(-1, )
-            elif message == 2:
-                return np.array([10, 20, 30]).reshape(-1, )
-            elif message == 3:
-                return np.array([100, 200, 300]).reshape(-1, )
-
-        def get_messages(path, model):
-            return ['precip_mean', 't_max_mean', 't_min_mean'], [1, 2, 3]
+        def get_csv(path):
+            return pd.DataFrame({
+                'precip_mean': [1, 2, 3],
+                't_max_mean': [10, 20, 30],
+                't_min_mean': [100, 200, 300]
+            })
 
         def check_file(path):
-            if path.endswith('006.grib2') or path.endswith('012.grib2'):
+            if path.endswith('006.csv') or path.endswith('012.csv'):
                 return True
             return False
 
-        monkeypatch.setattr(bc, 'access_grib', access_grib)
-        monkeypatch.setattr(bc, 'get_messages', get_messages)
+        monkeypatch.setattr(bc, 'get_csv', get_csv)
         monkeypatch.setattr(bc, 'check_file', check_file)
 
         data = bc.get_forecast(dt(2020, 1, 1, 0), 'geps', dt(2020, 1, 2, 0)).reset_index(drop=True)
@@ -107,22 +62,17 @@ class Test_Unit:
 
     def test_get_forecast_old_forecast(self, monkeypatch):
         # Pulling from an old forecast file, we only want the last few hours used in correction
-        def access_grib(path, message):
-            if message == 1:
-                return np.array([1]).reshape(-1, )
-            elif message == 2:
-                return np.array([2]).reshape(-1, )
-            elif message == 3:
-                return np.array([3]).reshape(-1, )
-
-        def get_messages(path, model):
-            return ['precip_mean', 't_max_mean', 't_min_mean'], [1, 2, 3]
+        def get_csv(path):
+            return pd.DataFrame({
+                'precip_mean': [1],
+                't_max_mean': [2],
+                't_min_mean': [3],
+            })
 
         def check_file(path):
             return True
 
-        monkeypatch.setattr(bc, 'access_grib', access_grib)
-        monkeypatch.setattr(bc, 'get_messages', get_messages)
+        monkeypatch.setattr(bc, 'get_csv', get_csv)
         monkeypatch.setattr(bc, 'check_file', check_file)
         monkeypatch.setattr(bc.gs, 'BIAS_DAYS', 10)
         monkeypatch.setattr(bc.gs, 'ALL_TIMES', list(range(6, 241, 6)))
@@ -138,40 +88,6 @@ class Test_Unit:
             'datetime': [oldest + timedelta(hours=i*6) for i in range(8)],
         })
         assert_frame_equal(data, exp, check_like=True)
-
-    def test_correct_forecast(self, monkeypatch):
-        models = {
-            'geps': {
-                'ensemble_members': 2
-            },
-        }
-        monkeypatch.setattr(bc, 'models', models)
-        forecast = pd.DataFrame({
-            'precip_max': [1.1, 2.2, 3.3, 4.4],
-            't_max_mean': [0.5, 10.2, 11.1, 14.2],
-            't_min_min': [-1.2, -1, 1, 2],
-            'datetime': [1, 1, 2, 2],
-            'stn_id': [1, 2, 1, 2],
-        })
-        raw_forecasts = pd.DataFrame({
-            'precip_1': [1.13, 2.1, 3.3, 4.2],
-            'precip_2': [0.5, 2.0, 2.1, 4.4],
-            't_max_1': [1.0, 10, 11, 14],
-            't_max_2': [0.0, 10.5, 11.3, 14.4],
-            't_min_1': [-1.22, -1.0, 1.5, 2.5],
-            't_min_2': [-0.5, -0.5, 1.5, 2],
-            'datetime': [1, 1, 2, 2],
-            'stn_id': [1, 2, 1, 2],
-        })
-        ret = bc.correct_forecast(forecast, raw_forecasts, 'geps')
-        exp = pd.DataFrame({
-            'precip_max': [1.13, 2.1, 3.3, 4.4],
-            't_max_mean': [0.5, 10.25, 11.15, 14.2],
-            't_min_min': [-1.22, -1, 1.5, 2],
-            'datetime': [1, 1, 2, 2],
-            'stn_id': [1, 2, 1, 2],
-        })
-        assert_frame_equal(ret, exp, check_like=True)
 
     def test_calculate_biases(self, monkeypatch):
 
@@ -451,66 +367,6 @@ class Test_Unit:
         ret = bc.attach_station_ids(forecasts, stations).sort_values(['stn_id', 'lat', 'lon']).reset_index(drop=True)
         assert_frame_equal(ret, exp, check_like=True)
 
-    def test_correct_data(self, monkeypatch):
-        metvars = {
-            'precip': {
-                'correction': 'ratio',
-                'ensemble_values': {
-                    1: '_mean',
-                    2: '_upper_percentile',
-                    3: '_lower_percentile',
-                },
-            },
-            't_max': {
-                'correction': 'difference',
-                'ensemble_values': {
-                    1: '_mean',
-                    2: '_upper_percentile',
-                    3: '_lower_percentile',
-                },
-            },
-            't_min': {
-                'correction': 'difference',
-                'ensemble_values': {
-                    1: '_mean',
-                    2: '_upper_percentile',
-                    3: '_lower_percentile',
-                },
-            },
-        }
-        monkeypatch.setattr(bc.vs, 'metvars', metvars)
-        monkeypatch.setattr(bc.gs, 'FORECAST_COLUMN', 'mean')
-        forecast = pd.DataFrame({
-            't_max_mean': [10, 20, 30],
-            't_max_upper_percentile': [15, 22, 37],
-            't_max_lower_percentile': [5, 17, 10],
-            'bias_t_max_mean': [5, -2.5, -1],
-            't_min_mean': [10, 20, 30],
-            't_min_upper_percentile': [15, 22, 37],
-            't_min_lower_percentile': [5, 17, 10],
-            'bias_t_min_mean': [5, -2.5, -1],
-            'precip_mean': [0, 1.5, 4],
-            'precip_upper_percentile': [1, 2.5, 5.5],
-            'precip_lower_percentile': [0, 0.7, 2.1],
-            'bias_precip_mean': [2, 0.5, 1],
-        }).astype(float)
-        exp = pd.DataFrame({
-            't_max_mean': [5, 22.5, 31],
-            't_max_upper_percentile': [10, 24.5, 38],
-            't_max_lower_percentile': [0, 19.5, 11],
-            'bias_t_max_mean': [5, -2.5, -1],
-            't_min_mean': [5, 22.5, 31],
-            't_min_upper_percentile': [10, 24.5, 38],
-            't_min_lower_percentile': [0, 19.5, 11],
-            'bias_t_min_mean': [5, -2.5, -1],
-            'precip_mean': [0, 3, 4],
-            'precip_upper_percentile': [0.5, 5, 5.5],
-            'precip_lower_percentile': [0, 1.4, 2.1],
-            'bias_precip_mean': [2, 0.5, 1],
-        }).astype(float)
-        bc.correct_data(forecast)
-        assert_frame_equal(forecast, exp, check_like=True)
-
     def test_find_aggregate_values_first_day_0z(self):
         date_tm = dt(2021, 1, 10, 0)
         prev_forecasts = pd.DataFrame({
@@ -521,6 +377,8 @@ class Test_Unit:
             'forecast': [dt(2021, 1, 8, 0)] * 6 + [dt(2021, 1, 9, 0)] * 6,
             't_max_mean': [500, 500, 19, 22, 500, 500,  # only the third and fourth value of each row should be examined (due to time ranges used to find max temperature)
                            500, 500, 21, 18, 500, 500],
+            't_max_upper_percentile': [500, 500, 19, 23, 500, 500,  # only the third and fourth value of each row should be examined (due to time ranges used to find max temperature)
+                           500, 500, 22, 18, 500, 500],
             't_min_mean': [-100, -100, -100, -100, 11, 14,    # only the last values of each row should be examined (time range of minimum temperature)
                            -100, -100, -100, -100, 11, 9],
             'precip_mean': [100, 1, 1, 1, 1, 100,  # the first value of each row should not be included in the sum (time range of precip)
@@ -533,6 +391,7 @@ class Test_Unit:
             'agg_day': [0, 0],
             'forecast': [dt(2021, 1, 8, 0), dt(2021, 1, 9, 0)],
             't_max_mean': [22, 21],
+            't_max_upper_percentile': [23, 22],
             't_min_mean': [11, 9],
             'precip_mean': [4, 20],
         })
@@ -635,25 +494,21 @@ class Test_Unit:
         metvars = {
             'precip': {
                 'correction': 'ratio',
-                'ensemble_values': {
-                    1: '_mean',
-                    2: '_upper_percentile',
-                    3: '_lower_percentile',
-                },
+                'ensemble_values': ['mean', 'max', 'min'],
             },
         }
         monkeypatch.setattr(bc.vs, 'metvars', metvars)
         df = pd.DataFrame({
             'precip_mean': [1, 2, 3, 2, 3.5, 5.5],
-            'precip_lower_percentile': [0, 1, 1, 1.5, 2.5, 4.5],
-            'precip_upper_percentile': [2, 4, 6, 2.5, 5.5, 8],
+            'precip_min': [0, 1, 1, 1.5, 2.5, 4.5],
+            'precip_max': [2, 4, 6, 2.5, 5.5, 8],
             'stn_id': [1, 1, 1, 2, 2, 2],
             'agg_day': [0, 1, 2, 0, 1, 2],
         })
         exp = pd.DataFrame({
             'precip_mean': [1, 1, 1, 2, 1.5, 2],
-            'precip_lower_percentile': [0, 1, 0, 1.5, 1, 2],
-            'precip_upper_percentile': [2, 2, 2, 2.5, 3, 2.5],
+            'precip_min': [0, 1, 0, 1.5, 1, 2],
+            'precip_max': [2, 2, 2, 2.5, 3, 2.5],
             'stn_id': [1, 1, 1, 2, 2, 2],
             'agg_day': [0, 1, 2, 0, 1, 2],
         })
