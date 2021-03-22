@@ -264,7 +264,7 @@ def reformat_to_csv(forecast, date_tm):
     final = pd.concat(dfs, axis=1, sort=True)
     cols = [i for i in final if i.endswith(gs.FORECAST_COLUMN)]
     final = final[cols]
-    rename = {i: f'{i[:-5]}' for i in cols}
+    rename = {i: f'{i[:-1 * len(gs.FORECAST_COLUMN) - 1]}' for i in cols}
     final.rename(columns=rename, inplace=True)
     final.to_excel(f'{gs.DIR}/output/forecasts/{folder}.xlsx', index=True)
 
@@ -386,6 +386,7 @@ def store_raw(raw_forecasts, forecast, date_tm, model):
     writer = pd.ExcelWriter(f'{gs.DIR}/output/daily_raw/{folder}.xlsx')
     for stn in sorted(list(stns)):
         df = merged.loc[merged['stn_id'] == stn, column_order].set_index('datetime', drop=True)
+        df = df.round(1)
         rename = {i: f'{stn.upper()}_{i}' for i in df.columns}
         df.rename(columns=rename, inplace=True)
         df.to_excel(writer, sheet_name=f'{stn}')
