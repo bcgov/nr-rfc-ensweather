@@ -1,5 +1,6 @@
 import argparse
 import contextlib
+import os
 import sys
 import shutil
 from datetime import datetime as dt, timedelta
@@ -36,9 +37,9 @@ def find_run_time(args):
         return dt.strptime(args.run, '%Y%m%d_%H')
     else:
         now = get_now()
-        if now.hour < 4:
+        if now.hour < 6:
             now = (now - timedelta(days=1)).replace(hour=12)
-        elif now.hour <= 16:
+        elif now.hour <= 18:
             now = now.replace(hour=0)
         else:
             now = now.replace(hour=12)
@@ -63,6 +64,11 @@ def delete_old_folders():
         tm = dt.strptime(base_name, '%Y%m%d%H')
         if now - timedelta(days=BIAS_DAYS+2, hours=max(ALL_TIMES)) > tm:
             shutil.rmtree(folder)
+    temp_files = glob(f'{DIR}tmp/*')
+    for i in temp_files:
+        tm = dt.strptime(i.split('_')[0], '%Y%m%d%H')
+        if tm < now - timedelta(days=2):
+            os.remove(i)
 
 
 def main(args):
@@ -89,7 +95,6 @@ def main(args):
             else:
                 bias_correction.main(run_time)
     except Exception as _:
-        raise
         print('Failure running program.')
 
 

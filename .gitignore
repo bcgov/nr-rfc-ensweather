@@ -5,6 +5,7 @@ bc_models
 historical_models
 remapped
 errors
+tmp
 
 .vscode
 .pytest_cache
