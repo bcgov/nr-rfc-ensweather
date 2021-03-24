@@ -72,6 +72,7 @@ def delete_old_folders():
     
     temp_files = glob(f'{DIR}/tmp/*')
     for i in temp_files:
+        LOGGER.debug(f"tmp file: {i}")
         tm = dt.strptime(i.split('_')[0], '%Y%m%d%H')
         if tm < now - timedelta(days=2):
             os.remove(i)
