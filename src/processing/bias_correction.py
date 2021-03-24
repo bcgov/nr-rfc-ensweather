@@ -124,7 +124,9 @@ def get_forecast(forecast_time, model, new_forecast):
                       # 12 day bias from 20 days ago is needed
                       # We include the extra 18 hours to ensure we have full days to aggregate
         try:
-            pathStr = forecast_time.strftime(f'{gs.DIR}models/{model}/%Y%m%d%H/ens_{model}_{hour:03}.csv')\
+            dateFolder = forecast_time.strftime('%Y%m%d%H')
+            pathStr = os.path.join({gs.DIR}, 'models',  model, dateFolder, f'ens_{model}_{hour:03}.csv')
+            #pathStr = forecast_time.strftime(f'{gs.DIR}models/{model}/%Y%m%d%H/ens_{model}_{hour:03}.csv')
             # using pathlib to keep paths platform independent
             path = pathlib.Path(pathStr)
             LOGGER.debug(f"forecast path: {path}")

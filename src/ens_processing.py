@@ -7,18 +7,11 @@ import shutil
 from datetime import datetime as dt, timedelta
 from glob import glob
 
-
-import platform
-if platform.system() == 'Windows':
-    splitter = '\\'
-else:
-    splitter = '/'
-
-base = splitter.join(__file__.split(splitter)[:-1])
+base = os.path.dirname(__file__)
 if base not in sys.path:
     sys.path.append(base)
 
-from config.general_settings import VERSION, BIAS_DAYS, DIR, ALL_TIMES, FILE_SPLITTER
+from config.general_settings import VERSION, BIAS_DAYS, DIR, ALL_TIMES
 import config.logging_config
 from config.model_settings import models
 from downloads import download_models
@@ -70,13 +63,14 @@ def delete_old_folders():
     folders = glob(f'{DIR}/models/*/*')
     for folder in folders:
         LOGGER.debug(f"folder: {folder}")
-        base_name = folder.split(FILE_SPLITTER)[-1]
+        #base_name = folder.split(FILE_SPLITTER)[-1]
+        base_name = os.path.dirname(folder)
         LOGGER.debug(f"base_name: {base_name}")
         tm = dt.strptime(base_name, '%Y%m%d%H')
         if now - timedelta(days=BIAS_DAYS+2, hours=max(ALL_TIMES)) > tm:
             LOGGER.debug(f"removing the folder: {folder}")
             shutil.rmtree(folder)
-    temp_files = glob(f'{DIR}tmp/*')
+    temp_files = glob(f'{DIR}/tmp/*')
     for i in temp_files:
         tm = dt.strptime(i.split('_')[0], '%Y%m%d%H')
         if tm < now - timedelta(days=2):
