@@ -125,7 +125,7 @@ def get_forecast(forecast_time, model, new_forecast):
                       # We include the extra 18 hours to ensure we have full days to aggregate
         try:
             dateFolder = forecast_time.strftime('%Y%m%d%H')
-            pathStr = os.path.join({gs.DIR}, 'models',  model, dateFolder, f'ens_{model}_{hour:03}.csv')
+            pathStr = os.path.join(gs.DIR, 'models',  model, dateFolder, f'ens_{model}_{hour:03}.csv')
             #pathStr = forecast_time.strftime(f'{gs.DIR}models/{model}/%Y%m%d%H/ens_{model}_{hour:03}.csv')
             # using pathlib to keep paths platform independent
             path = pathlib.Path(pathStr)

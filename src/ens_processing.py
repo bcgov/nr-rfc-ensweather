@@ -63,18 +63,22 @@ def delete_old_folders():
     folders = glob(f'{DIR}/models/*/*')
     for folder in folders:
         LOGGER.debug(f"folder: {folder}")
-        #base_name = folder.split(FILE_SPLITTER)[-1]
-        base_name = os.path.dirname(folder)
+        base_name = os.path.basename(folder)
         LOGGER.debug(f"base_name: {base_name}")
         tm = dt.strptime(base_name, '%Y%m%d%H')
         if now - timedelta(days=BIAS_DAYS+2, hours=max(ALL_TIMES)) > tm:
             LOGGER.debug(f"removing the folder: {folder}")
             shutil.rmtree(folder)
+    
     temp_files = glob(f'{DIR}/tmp/*')
     for i in temp_files:
-        tm = dt.strptime(i.split('_')[0], '%Y%m%d%H')
+        LOGGER.debug(f"tmp file: {i}")
+        base_name = os.path.basename(i)
+        LOGGER.debug(f"base_name: {base_name}")
+        tm = dt.strptime(base_name.split('_')[0], '%Y%m%d%H')
         if tm < now - timedelta(days=2):
             os.remove(i)
+    LOGGER.debug("completed delete_old_folders")
 
 
 def main(args):
@@ -102,8 +106,8 @@ def main(args):
                     bias_correction.main(run_time)
             else:
                 bias_correction.main(run_time)
-    except Exception as _:
-        print('Failure running program.')
+    except Exception as e:
+        LOGGER.error(f'Failure running program. {e}')
 
 
 def parse_arguments():
