@@ -37,10 +37,10 @@ node('zavijava_rfc') {
             bat '''
             :: ------- GET/SETup Cygwin --------
             SET curDir=%RFC_ARTIFACTS_FOLDER%
-            SET cygdir=%RFC_ARTIFACTS_FOLDER%\cygdir
-            SET cygdirbin=%cygdir%\bin
-            SET cygpackages=%RFC_ARTIFACTS_FOLDER%\cygpackages
-            SET cygSetup=%cygpackages%\setup_cygwin.exe
+            SET cygdir=%RFC_ARTIFACTS_FOLDER%\\cygdir
+            SET cygdirbin=%cygdir%\\bin
+            SET cygpackages=%RFC_ARTIFACTS_FOLDER%\\cygpackages
+            SET cygSetup=%cygpackages%\\setup_cygwin.exe
 
             echo cygdir %cygdir%
             echo cygdirbin %cygdirbin%
