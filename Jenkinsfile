@@ -89,7 +89,7 @@ node('zavijava_rfc') {
                     curl %minicondaURL% -o %minicondaInstallerFullPath%
                 )
 
-                if NOT EXIST %minicondaInstallDir%\condabin (
+                if NOT EXIST %minicondaInstallDir%\\condabin (
                     SET DRIVELETTER=%minicondaInstallDir:~0,1%
                     %DRIVELETTER%:
                     cd %minicondaInstallDir%
