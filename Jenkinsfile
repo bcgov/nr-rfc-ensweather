@@ -117,5 +117,38 @@ node('zavijava_rfc') {
                 )
             '''
         }
+        stage('getWGrib2'){
+            bat '''
+                :: ------- get wgrib2 dependency --------
+                SET DRIVELETTER=%RFC_ARTIFACTS_FOLDER:~0,1%
+                %DRIVELETTER%:
+                cd %RFC_ARTIFACTS_FOLDER%
+
+                SET cygwinhome=%RFC_ARTIFACTS_FOLDER%\\cygdir
+                SET wgrib2Folder=%RFC_ARTIFACTS_FOLDER%\\wgrib2
+                SET wgrib2tarball=%wgrib2Folder%\\wgrib2.tgz
+                SET wgrib2TarOutFolder=%wgrib2Folder%\\grib2
+                SET wgribInstallLocation=%cygwinhome%\\bin\\wgrib2.exe
+                SET wgribURL=https://github.com/franTarkenton/wgrib2-Cygwin-Build/releases/download/20210313-0003/wgrib-cyg.tgz
+                SET PATH=%cygwinhome%\\bin;%PATH%
+
+                if NOT EXIST %wgrib2Folder% (
+                    mkdir %wgrib2Folder%
+                )
+                if NOT EXIST %wgribInstallLocation% (
+                    if NOT EXIST %wgrib2tarball% (
+                        curl -L -H "Accept"="application/json" %wgribURL% -o %wgrib2tarball%
+                    )
+                    if not EXIST %wgrib2TarOutFolder% (
+                        SET DRIVELETTER=%wgrib2Folder:~0,1%
+                        %DRIVELETTER%:
+                        cd %wgrib2Folder%
+                        bash -c "gunzip < $wgrib2tarball | tar -xf - "
+                        cd %curDir%
+                    )
+                    copy %wgrib2TarOutFolder%\\wgrib2\\wgrib2.exe %wgribInstallLocation%
+                )
+            '''
+        }
     }
 }
