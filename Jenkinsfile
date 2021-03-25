@@ -23,9 +23,9 @@ node('zavijava_rfc') {
             bat '''
                 SET CONDABIN=%RFC_ARTIFACTS_FOLDER%\\miniconda\\condabin
                 SET condaEnvPath=%RFC_ARTIFACTS_FOLDER%\\rfc_conda_envs\\nr-rfc-ensweather
-                call conda.bat activate %condaEnvPath%
                 SET PATH=%CYGWINHOME%\bin;%CONDABIN%;%PATH%
-                echo %%
+
+                call conda.bat activate %condaEnvPath%
                 %condaEnvPath%\\python src\\extractClimateObservations.py
             '''
         }
