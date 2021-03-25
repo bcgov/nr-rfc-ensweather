@@ -28,9 +28,12 @@ sheetName = 'ALL_DATA'
 
 
 def convertCsvXlrd(excelFile, sheetName, csvFile):
-    # print(f"sheetname: {sheetName}")
-    wb = openpyxl.load_workbook(excelFile, read_only=True)
+    # print(f"sheetname: {sheetName}") read_only=True
+    wb = openpyxl.load_workbook(excelFile, data_only=True, keep_vba=True, read_only=True)
     sh = wb[sheetName]
+    if sh.calculate_dimension() == "A1:A1":
+        sh.reset_dimensions()
+
 
     with open(csvFile, "w", newline="") as f:
         c = csv.writer(f)
