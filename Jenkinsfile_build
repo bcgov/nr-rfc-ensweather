@@ -1,0 +1,180 @@
+node('zavijava_rfc') {
+    withEnv([
+        "JOB_NAME=EnsembleWeather_build", 
+        "TEMP=$WORKSPACE\\tmp",
+        "TMP=$WORKSPACE\\tmp",
+        "no_proxy=github.com"
+        ]) {
+        stage('checkout') {
+            //sh 'if [ ! -d "$TEMP" ]; then mkdir $TEMP; fi'
+            checkout([$class: 'GitSCM', branches: [[name: "${env.TAGNAME}"]], extensions: [], userRemoteConfigs: [[url: 'https://github.com/bcgov/nr-rfc-ensweather']]])
+        }
+        stage('mapdrives') {
+            bat '''
+            :: -------- Create RFC Drive Mapping and required folders -------
+            echo setting up required directories
+            wmic logicaldisk list brief
+            whoami
+
+            if NOT EXIST %ENS_DRIVEMAPPING%:\\nul  (
+                net use %ENS_DRIVEMAPPING%: %ENS_NETWORK_DRIVE% /PERSISTENT:NO
+                @REM powershell -File ./mapdrives.ps1
+            )
+
+            IF NOT EXIST %RFC_ARTIFACTS_FOLDER% (
+                echo creating the folder %RFC_ARTIFACTS_FOLDER% 
+                mkdir %RFC_ARTIFACTS_FOLDER%
+            )
+
+            IF NOT EXIST %ENS_WEATHER_DATA% (
+                echo creating the folder %ENS_WEATHER_DATA% 
+                mkdir %ENS_WEATHER_DATA%
+            )
+            echo complete
+            '''
+        }
+        stage('setup Cygwin') {
+            bat '''
+            :: ------- GET/SETup Cygwin --------
+            SET cygdir=%RFC_ARTIFACTS_FOLDER%\\cygdir
+            SET cygdirbin=%cygdir%\\bin
+            SET cygpackages=%RFC_ARTIFACTS_FOLDER%\\cygpackages
+            SET cygSetup=%cygpackages%\\setup_cygwin.exe
+
+            echo cygdir %cygdir%
+            echo cygdirbin %cygdirbin%
+            echo cygpackages %cygpackages%
+            echo cygSetup %cygSetup%
+
+
+            if NOT EXIST %cygdir% (
+                mkdir %cygdir%
+            )
+            if NOT EXIST %cygpackages% (
+                mkdir %cygpackages%
+            )
+            if NOT EXIST %cygSetup% (
+                curl http://cygwin.com/setup-x86_64.exe -o %cygSetup%
+            )
+
+            if NOT EXIST %cygdirbin%/bash.exe (
+                %cygSetup% ^
+                --quiet-mode ^
+                --no-desktop ^
+                --download ^
+                --local-install ^
+                --site http://muug.ca/mirror/cygwin/ ^
+                --local-package-dir %cygpackages% ^
+                --root %cygdir% ^
+                --no-admin ^
+                --no-startmenu ^
+                --disable-buggy-antivirus ^
+                --packages awk,unzip,lynx,wget,curl,nano,gzip,bzip,cygport,libgomp1,zlib,libgfortran5
+            )
+        '''
+        }
+        stage('getConda') {
+            bat '''
+                :: ----- get conda ---------
+                SET minicondaInstallDir=%RFC_ARTIFACTS_FOLDER%\\miniconda
+                SET minicondaInstallFile=miniconda_installer.zip
+                SET minicondaInstallerFullPath=%minicondaInstallDir%\\%minicondaInstallFile%
+                SET minicondaURL=https://repo.anaconda.com/miniconda/Miniconda3-latest-Windows-x86_64.exe
+
+                if NOT EXIST %minicondaInstallDir% (
+                    mkdir %minicondaInstallDir%
+                )
+
+                if NOT EXIST %minicondaInstallerFullPath% (
+                    curl %minicondaURL% -o %minicondaInstallerFullPath%
+                )
+
+                if NOT EXIST %minicondaInstallDir%\\condabin (
+                    SET DRIVELETTER=%minicondaInstallDir:~0,1%
+                    %DRIVELETTER%:
+                    cd %minicondaInstallDir%
+                    %minicondaInstallFile% /S /InstallationType=JustMe AddToPath=0 /RegisterPython=0 /D=%minicondaInstallDir%
+                )
+            '''
+        }
+        stage('buildCondaEnv') {
+            bat '''
+                :: ----- build conda env ---------
+                SET condaEnvPath=%RFC_ARTIFACTS_FOLDER%\\rfc_conda_envs
+                SET condaEnvPath=%condaEnvPath%\\nr-rfc-ensweather
+                SET minicondaInstallDir=%RFC_ARTIFACTS_FOLDER%\\miniconda
+                SET minicondaBin=%minicondaInstallDir%\\condabin
+                SET condaEnvFilePath=%WORKSPACE%\\environment.yaml
+                SET PATH=%minicondaBin%;%PATH%
+
+                if not exist %condaEnvPath% (
+                    mkdir %condaEnvPath%
+                )
+                :: creates a conda env in the folder
+                if NOT EXIST %condaEnvPath%\\python.exe (
+                    ::cd %WORKSPACE%
+                    conda.bat env create --prefix %condaEnvPath% --file %condaEnvFilePath%
+                )
+            '''
+        }
+        stage('getWGrib2'){
+            bat '''
+                :: ------- get wgrib2 dependency --------
+                SET DRIVELETTER=%RFC_ARTIFACTS_FOLDER:~0,1%
+                %DRIVELETTER%:
+                cd %RFC_ARTIFACTS_FOLDER%
+
+                SET cygwinhome=%RFC_ARTIFACTS_FOLDER%\\cygdir
+                SET wgrib2Folder=%RFC_ARTIFACTS_FOLDER%\\wgrib2
+                SET wgrib2tarball=%wgrib2Folder%\\wgrib2.tgz
+                SET wgrib2TarOutFolder=%wgrib2Folder%\\grib2
+                SET wgribInstallLocation=%cygwinhome%\\bin\\wgrib2.exe
+                SET wgribURL=https://github.com/franTarkenton/wgrib2-Cygwin-Build/releases/download/20210313-0003/wgrib-cyg.tgz
+                SET PATH=%cygwinhome%\\bin;%PATH%
+
+                if NOT EXIST %wgrib2Folder% (
+                    mkdir %wgrib2Folder%
+                )
+                if NOT EXIST %wgribInstallLocation% (
+                    if NOT EXIST %wgrib2tarball% (
+                        curl -L -H "Accept"="application/json" %wgribURL% -o %wgrib2tarball%
+                    )
+                    if not EXIST %wgrib2TarOutFolder% (
+                        SET DRIVELETTER=%wgrib2Folder:~0,1%
+                        %DRIVELETTER%:
+                        cd %wgrib2Folder%
+                        bash -c "gunzip < $wgrib2tarball | tar -xf - "
+                        cd %curDir%
+                    )
+                    copy %wgrib2TarOutFolder%\\wgrib2\\wgrib2.exe %wgribInstallLocation%
+                )
+            '''
+        }
+        stage("test_run_another_job") {
+            build 'test_network'
+        }
+        // stage('runEnsembleWeather') {
+        //     bat '''
+        //         :: ----- run ens weather ------
+        //         echo setting up ens weather run
+        //         SET CYGWINHOME=%RFC_ARTIFACTS_FOLDER%\\cygdir
+        //         SET CONDABIN=%RFC_ARTIFACTS_FOLDER%\\miniconda\\condabin
+        //         SET condaEnvPath=%RFC_ARTIFACTS_FOLDER%\\rfc_conda_envs\\nr-rfc-ensweather
+        //         SET ENS_HOME=%WORKSPACE%\\nr-rfc-ensweather
+        //         cd nr-rfc-ensweather
+
+        //         @REM .\\cicd\\runEnsWeather.bat
+        //         SET PATH=%CYGWINHOME%\bin;%CONDABIN%;%PATH%
+        //         SET WGRIB2EXEC=%CYGWINHOME%\\bin\\wgrib2.exe
+
+        //         @REM -------- activate the conda env --------
+        //         call conda.bat activate %condaEnvPath%
+
+        //         @REM -------- run the ens weather --------
+        //         %condaEnvPath%\\python src\\ens_processing.py -p
+
+        //         echo completed run
+        //     '''
+        // }
+    }
+}
