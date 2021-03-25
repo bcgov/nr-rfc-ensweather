@@ -12,6 +12,7 @@ node('zavijava_rfc') {
         stage('mapdrives') {
             bat '''
             :: -------- Create RFC Drive Mapping and required folders -------
+            echo running jenkins2 branch
             echo setting up required directories
             wmic logicaldisk list brief
             whoami
