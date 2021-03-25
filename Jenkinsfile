@@ -19,14 +19,37 @@ node('zavijava_rfc') {
                 string(name: 'ENS_DRIVEMAPPING', value: "${ENS_DRIVEMAPPING}"), 
                 string(name: 'ENS_WEATHER_DATA', value: "${ENS_WEATHER_DATA}")]
         }
+        stage('prepClimateObsData') {
+            bat '''
+                SET CONDABIN=%RFC_ARTIFACTS_FOLDER%\\miniconda\\condabin
+                SET condaEnvPath=%RFC_ARTIFACTS_FOLDER%\\rfc_conda_envs\\nr-rfc-ensweather
+                call conda.bat activate %condaEnvPath%
+                SET PATH=%CYGWINHOME%\bin;%CONDABIN%;%PATH%
+                python src\\extractClimateObservations.py
+            '''
+        }
         stage('run script') {
             bat '''
                 echo running script
+                :: ----- run ens weather ------
+                echo setting up ens weather run
+                SET CYGWINHOME=%RFC_ARTIFACTS_FOLDER%\\cygdir
+                SET CONDABIN=%RFC_ARTIFACTS_FOLDER%\\miniconda\\condabin
+                SET condaEnvPath=%RFC_ARTIFACTS_FOLDER%\\rfc_conda_envs\\nr-rfc-ensweather
+                SET ENS_HOME=%WORKSPACE%
+
+                @REM .\\cicd\\runEnsWeather.bat
+                SET PATH=%CYGWINHOME%\bin;%CONDABIN%;%PATH%
+                SET WGRIB2EXEC=%CYGWINHOME%\\bin\\wgrib2.exe
+
+                @REM -------- activate the conda env --------
+                call conda.bat activate %condaEnvPath%
+
+                @REM -------- run the ens weather --------
+                %condaEnvPath%\\python src\\ens_processing.py
+
+                echo completed run
             '''
         }
     }
 }
-
-
-
-
