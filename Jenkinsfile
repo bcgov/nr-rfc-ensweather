@@ -25,7 +25,8 @@ node('zavijava_rfc') {
                 SET condaEnvPath=%RFC_ARTIFACTS_FOLDER%\\rfc_conda_envs\\nr-rfc-ensweather
                 call conda.bat activate %condaEnvPath%
                 SET PATH=%CYGWINHOME%\bin;%CONDABIN%;%PATH%
-                python src\\extractClimateObservations.py
+                echo %%
+                %condaEnvPath%\\python src\\extractClimateObservations.py
             '''
         }
         stage('run script') {
