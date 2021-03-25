@@ -29,7 +29,7 @@ sheetName = 'ALL_DATA'
 
 def convertCsvXlrd(excelFile, sheetName, csvFile):
     # print(f"sheetname: {sheetName}")
-    wb = openpyxl.load_workbook(excelFile)
+    wb = openpyxl.load_workbook(excelFile, read_only=True)
     sh = wb[sheetName]
 
     with open(csvFile, "w", newline="") as f:
