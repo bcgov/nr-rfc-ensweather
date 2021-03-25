@@ -97,5 +97,25 @@ node('zavijava_rfc') {
                 )
             '''
         }
+        stage('buildCondaEnv') {
+            bat '''
+                :: ----- build conda env ---------
+                SET condaEnvPath=%RFC_ARTIFACTS_FOLDER%\\rfc_conda_envs
+                SET minicondaInstallDir=%RFC_ARTIFACTS_FOLDER%\\miniconda
+                SET minicondaBin=%minicondaInstallDir%\\condabin
+                SET condaEnvPath=%condaEnvPath%\\nr-rfc-ensweather
+                SET condaEnvFilePath=%WORKSPACE%\\environment.yaml
+                SET PATH=%minicondaBin%;%PATH%
+
+                if not exist %condaEnvPath% (
+                    mkdir %condaEnvPath%
+                )
+                :: creates a conda env in the folder
+                if NOT EXIST %condaEnvPath%\\python.exe (
+                    ::cd %WORKSPACE%
+                    conda.bat env create --prefix %condaEnvPath% --file %condaEnvFilePath%
+                )
+            '''
+        }
     }
 }
