@@ -16,7 +16,7 @@ node('zavijava_rfc') {
             wmic logicaldisk list brief
             whoami
 
-            if NOT EXIST %ENS_DRIVEMAPPING%:\nul  (
+            if NOT EXIST %ENS_DRIVEMAPPING%:\\nul  (
                 net use %ENS_DRIVEMAPPING%: %ENS_NETWORK_DRIVE% /PERSISTENT:NO
                 @REM powershell -File ./mapdrives.ps1
             )
