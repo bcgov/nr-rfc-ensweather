@@ -150,5 +150,31 @@ node('zavijava_rfc') {
                 )
             '''
         }
+        stage("test_run_another_job") {
+            build 'test_network'
+        }
+        // stage('runEnsembleWeather') {
+        //     bat '''
+        //         :: ----- run ens weather ------
+        //         echo setting up ens weather run
+        //         SET CYGWINHOME=%RFC_ARTIFACTS_FOLDER%\\cygdir
+        //         SET CONDABIN=%RFC_ARTIFACTS_FOLDER%\\miniconda\\condabin
+        //         SET condaEnvPath=%RFC_ARTIFACTS_FOLDER%\\rfc_conda_envs\\nr-rfc-ensweather
+        //         SET ENS_HOME=%WORKSPACE%\\nr-rfc-ensweather
+        //         cd nr-rfc-ensweather
+
+        //         @REM .\\cicd\\runEnsWeather.bat
+        //         SET PATH=%CYGWINHOME%\bin;%CONDABIN%;%PATH%
+        //         SET WGRIB2EXEC=%CYGWINHOME%\\bin\\wgrib2.exe
+
+        //         @REM -------- activate the conda env --------
+        //         call conda.bat activate %condaEnvPath%
+
+        //         @REM -------- run the ens weather --------
+        //         %condaEnvPath%\\python src\\ens_processing.py -p
+
+        //         echo completed run
+        //     '''
+        // }
     }
 }
