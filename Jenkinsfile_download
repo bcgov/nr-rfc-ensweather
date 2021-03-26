@@ -29,7 +29,7 @@ node('zavijava_rfc') {
                 %condaEnvPath%\\python src\\extractClimateObservations.py
             '''
         }
-        stage('run script') {
+        stage('download_weather_data') {
             bat '''
                 echo running script
                 :: ----- run ens weather ------
@@ -47,7 +47,7 @@ node('zavijava_rfc') {
                 call conda.bat activate %condaEnvPath%
 
                 @REM -------- run the ens weather --------
-                %condaEnvPath%\\python src\\ens_processing.py
+                %condaEnvPath%\\python src\\ens_processing.py -d
 
                 echo completed run
             '''
