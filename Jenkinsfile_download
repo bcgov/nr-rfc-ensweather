@@ -38,9 +38,9 @@ node('zavijava_rfc') {
                 SET CONDABIN=%RFC_ARTIFACTS_FOLDER%\\miniconda\\condabin
                 SET condaEnvPath=%RFC_ARTIFACTS_FOLDER%\\rfc_conda_envs\\nr-rfc-ensweather
                 SET ENS_HOME=%WORKSPACE%
-
+                
                 @REM .\\cicd\\runEnsWeather.bat
-                SET PATH=%CYGWINHOME%\bin;%CONDABIN%;%PATH%
+                SET PATH=%CYGWINHOME%\\bin;%CONDABIN%;%PATH%
                 SET WGRIB2EXEC=%CYGWINHOME%\\bin\\wgrib2.exe
 
                 @REM -------- activate the conda env --------
