@@ -121,7 +121,10 @@ def ensemble_regrid(date_tm, model, stations):
             continue
 
         # concatenate all hourly variable files into one grid
-        cmd = f'cat {folder}/*_P{hour:03}_*.grib2 > {folder}/cat_{model}_{hour:03}.grib2'
+        inputFile = os.path.join(folder, f'*_P{hour:03}_*.grib2')
+        outputFile = os.path.join(folder, f'cat_{model}_{hour:03}.grib2')
+        #cmd = f'cat {folder}/*_P{hour:03}_*.grib2 > {folder}/cat_{model}_{hour:03}.grib2'
+        cmd = f'cat {inputFile} > {outputFile}'
         subprocess.call(cmd, shell=True)
 
         # regrid cat file to station locations
