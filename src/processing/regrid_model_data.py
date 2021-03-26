@@ -6,6 +6,7 @@ from glob import glob
 from time import time
 from datetime import datetime as dt, timedelta
 import platform
+from ens_processing import LOGGER
 if platform.system() == 'Windows':
     splitter = '\\'
 else:
@@ -117,14 +118,20 @@ def ensemble_regrid(date_tm, model, stations):
     for hour in ms.models[model]['times']:
         regrid_file_str = date_tm.strftime(f'{gs.DIR}/models/{model}/%Y%m%d%H/ens_{model}_{hour:03}.grib2')
         regrid_file = pathlib.Path(regrid_file_str)
+        LOGGER.debug(f"regridfile: {regrid_file}")
         if os.path.isfile(regrid_file):
+            LOGGER.debug("regrid_file is not a file")
             continue
 
         # concatenate all hourly variable files into one grid
         inputFile = os.path.join(folder, f'*_P{hour:03}_*.grib2')
         outputFile = os.path.join(folder, f'cat_{model}_{hour:03}.grib2')
+        LOGGER.debug(f"inputFile: {inputFile}")
+        LOGGER.debug(f"outputFile: {outputFile}")
+
         #cmd = f'cat {folder}/*_P{hour:03}_*.grib2 > {folder}/cat_{model}_{hour:03}.grib2'
         cmd = f'cat {inputFile} > {outputFile}'
+        LOGGER.debug(f"cmd: {cmd}")
         subprocess.call(cmd, shell=True)
 
         # regrid cat file to station locations
