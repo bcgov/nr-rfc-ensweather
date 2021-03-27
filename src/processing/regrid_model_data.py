@@ -1,3 +1,4 @@
+import logging
 import os
 import pathlib
 import subprocess
@@ -6,7 +7,6 @@ from glob import glob
 from time import time
 from datetime import datetime as dt, timedelta
 import platform
-from ens_processing import LOGGER
 if platform.system() == 'Windows':
     splitter = '\\'
 else:
@@ -25,7 +25,7 @@ from config import general_settings as gs
 from config import model_settings as ms
 from config import variable_settings as vs
 
-
+LOGGER = logging.getLogger(__name__)
 
 def open_subprocess_pipe(cmd):
     p = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE).communicate()
@@ -124,8 +124,15 @@ def ensemble_regrid(date_tm, model, stations):
             continue
 
         # concatenate all hourly variable files into one grid
-        inputFile = os.path.join(folder, f'*_P{hour:03}_*.grib2')
-        outputFile = os.path.join(folder, f'cat_{model}_{hour:03}.grib2')
+        # create windows paths
+        inputFile_win = os.path.join(folder, f'*_P{hour:03}_*.grib2')
+        outputFile_win = os.path.join(folder, f'cat_{model}_{hour:03}.grib2')
+        # cat command is from cygwin, won't work with windows path delimeters need
+        # to convert in this case windows path with forward slash delimeter
+        #   - better practice would have been to concatenate using pure python!!!!
+        inputFile = inputFile_win.replace(os.sep, '/')
+        outputFile = outputFile_win.replace(os.sep, '/')
+
         LOGGER.debug(f"inputFile: {inputFile}")
         LOGGER.debug(f"outputFile: {outputFile}")
 
@@ -135,8 +142,9 @@ def ensemble_regrid(date_tm, model, stations):
         subprocess.call(cmd, shell=True)
 
         # regrid cat file to station locations
-        regrid_path = os.path.join(f'{folder}', f'regrid_{model}_{hour:03}.grib2')
-        input_grib_path = os.path.join(f'{folder}', f'cat_{model}_{hour:03}.grib2')
+        # also converting back to / slash delimiters due to usage of cygwin command line
+        regrid_path = os.path.join(f'{folder}', f'regrid_{model}_{hour:03}.grib2').replace(os.sep, '/')
+        input_grib_path = os.path.join(f'{folder}', f'cat_{model}_{hour:03}.grib2').replace(os.sep, '/')
         cmd = f'{gs.WGRIB2} {input_grib_path} -new_grid location {station_locations} 0 {regrid_path}'
 
         subprocess.call(cmd, shell=True)
@@ -147,6 +155,7 @@ def ensemble_regrid(date_tm, model, stations):
         # subprocess.call(cmd, shell=True)
 
         # delete temporary files and ensemble files that are too small
+        # should use os.path to create paths not f-strings
         files = glob(date_tm.strftime(f'{folder}/*{hour:03}_allmbrs.grib2'))
         files += glob(f'{folder}/*{hour:03}.grib2')
         ensemble_files = [i for i in files if 'ens_' in i]
