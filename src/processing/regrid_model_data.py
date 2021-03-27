@@ -161,10 +161,12 @@ def ensemble_regrid(date_tm, model, stations):
         ensemble_files = [i for i in files if 'ens_' in i]
         files = [i for i in files if 'ens_' not in i]
         for i in files:
+            LOGGER.debug(f"deleting: {i}")
             os.remove(i)
         for i in ensemble_files:
             stats = os.stat(i)
             if stats.st_size < 1000:
+                LOGGER.debug(f"deleting {i}")
                 os.remove(i)
 
 
