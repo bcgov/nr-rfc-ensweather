@@ -37,7 +37,8 @@ def get_observations(date_tm):
     """
     
     #climate_path_str = f'{gs.SRCDIR}/resources/climate_obs_{date_tm.year}.csv'
-    climate_path_str = os.path.join(gs.CLIMATE_OBS_DIR, f'climate_obs_{date_tm.year}.csv')
+    #climate_path_str = os.path.join(gs.CLIMATE_OBS_DIR, f'climate_obs_{date_tm.year}.csv')
+    climate_path_str = os.path.join(gs.CLIMATE_OBS_DIR, f'{gs.CLIMATE_OBS_FILE}{date_tm.year}.csv')
     climate_path = pathlib.Path(climate_path_str)
     LOGGER.debug(f"climate_path: {climate_path}")
     df = pd.read_csv(str(climate_path))
@@ -45,7 +46,7 @@ def get_observations(date_tm):
     start_bias = date_tm - timedelta(days=gs.BIAS_DAYS)
     if start_bias.year != date_tm.year:
         #clim_obs_path_str = f'{gs.SRCDIR}/resources/climate_obs_{start_bias.year}.csv'
-        climate_path_str = os.path.join(gs.CLIMATE_OBS_DIR, f'climate_obs_{start_bias.year}.csv')
+        climate_path_str = os.path.join(gs.CLIMATE_OBS_DIR, f'{gs.CLIMATE_OBS_FILE}{start_bias.year}.csv')
 
         clim_obj_path = pathlib.Path(clim_obs_path_str)
         LOGGER.debug(f"clim_obj_path: {clim_obj_path}")
