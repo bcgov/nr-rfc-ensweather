@@ -1,3 +1,4 @@
+import logging
 import os
 import pathlib
 import subprocess
@@ -6,7 +7,6 @@ from glob import glob
 from time import time
 from datetime import datetime as dt, timedelta
 import platform
-from ens_processing import LOGGER
 if platform.system() == 'Windows':
     splitter = '\\'
 else:
@@ -25,7 +25,7 @@ from config import general_settings as gs
 from config import model_settings as ms
 from config import variable_settings as vs
 
-
+LOGGER = logging.getLogger(__name__)
 
 def open_subprocess_pipe(cmd):
     p = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE).communicate()

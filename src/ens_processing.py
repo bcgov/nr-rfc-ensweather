@@ -77,6 +77,7 @@ def delete_old_folders():
         LOGGER.debug(f"base_name: {base_name}")
         tm = dt.strptime(base_name.split('_')[0], '%Y%m%d%H')
         if tm < now - timedelta(days=2):
+            LOGGER.debug(f'removing the file {i}')
             os.remove(i)
     LOGGER.debug("completed delete_old_folders")
 
