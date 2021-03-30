@@ -279,7 +279,7 @@ def reformat_to_csv(forecast, date_tm):
     folder = date_tm.strftime('%Y-%m-%d')
     forecast['datetime'] = forecast['datetime'].apply(lambda x: x.strftime('%Y-%m-%d'))
     forecast_dir = pathlib.Path(f'{gs.DIR}/output/forecasts', exist_ok=True)
-    if not os.path.exists(str(forecast_dir))
+    if not os.path.exists(str(forecast_dir)):
         os.makedirs(str(forecast_dir))
 
     for stn in sorted(list(stns)):
