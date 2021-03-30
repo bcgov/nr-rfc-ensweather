@@ -279,7 +279,8 @@ def reformat_to_csv(forecast, date_tm):
     folder = date_tm.strftime('%Y-%m-%d')
     forecast['datetime'] = forecast['datetime'].apply(lambda x: x.strftime('%Y-%m-%d'))
     forecast_dir = pathlib.Path(f'{gs.DIR}/output/forecasts', exist_ok=True)
-    os.makedirs(str(forecast_dir))
+    if not os.path.exists(str(forecast_dir))
+        os.makedirs(str(forecast_dir))
 
     for stn in sorted(list(stns)):
         df = forecast.loc[forecast['stn_id'] == stn, cols].set_index('datetime', drop=True)
@@ -292,6 +293,8 @@ def reformat_to_csv(forecast, date_tm):
     final = final[cols]
     rename = {i: f'{i[:-1 * len(gs.FORECAST_COLUMN) - 1]}' for i in cols}
     final.rename(columns=rename, inplace=True)
+    LOGGER.debug("folder: {folder}")
+    outputXlsxPath = os.path.join(gs.DIR, 'output', 'forecasts', f'{folder}.xlsx')
     final.to_excel(f'{gs.DIR}/output/forecasts/{folder}.xlsx', index=True)
 
 
