@@ -1,6 +1,8 @@
 import datetime as dt
+import logging
 import os
 import sys
+import pathlib
 
 import numpy as np
 import pandas as pd
@@ -17,6 +19,7 @@ if base not in sys.path:
 
 from config import general_settings as gs, model_settings as ms, variable_settings as vs
 
+LOGGER = logging.getLogger(__name__)
 
 def free_range(start, stop, step):
     """Range iterator allowing more types than just integers
@@ -51,7 +54,9 @@ def free_range(start, stop, step):
 
 
 def get_stations():
-    stations = pd.read_csv(f'{gs.DIR}resources/stations.csv')
+    stations_path = pathlib.Path(f'{gs.SRCDIR}/resources/stations.csv')
+    stations = pd.read_csv(str(stations_path))
+    LOGGER.debug(f"stations path: {stations_path}, {len(stations)}")
     return stations
 
 
@@ -73,4 +78,6 @@ def fmt_orig_fn(rt, tm, m, lev=None, var=None):
         'grib_name': var[0] if var is not None else '',
     }
     if m == 'geps':
-        return (rt.strftime(ms.models['geps']['url'].format(**kwargs)), rt.strftime(ms.models['geps']['fn'].format(**kwargs)))
+        geps_url = (rt.strftime(ms.models['geps']['url'].format(**kwargs)), rt.strftime(ms.models['geps']['fn'].format(**kwargs)))
+        LOGGER.debug(f'geps_url: {geps_url}') 
+        return geps_url
