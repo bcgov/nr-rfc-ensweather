@@ -130,7 +130,7 @@ node('zavijava_rfc') {
                 SET wgrib2tarball=%wgrib2Folder%\\wgrib2.tgz
                 SET wgrib2TarOutFolder=%wgrib2Folder%\\grib2
                 SET wgribInstallLocation=%cygwinhome%\\bin\\wgrib2.exe
-                SET wgribURL=https://github.com/franTarkenton/wgrib2-Cygwin-Build/releases/download/20210313-0003/wgrib-cyg.tgz
+                SET wgribURL=https://github.com/franTarkenton/wgrib2-Cygwin-Build/releases/download/20210330-1843/wgrib-cyg.tgz
                 SET PATH=%cygwinhome%\\bin;%PATH%
 
                 if NOT EXIST %wgrib2Folder% (
