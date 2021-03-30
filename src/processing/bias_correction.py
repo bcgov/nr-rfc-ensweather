@@ -294,7 +294,7 @@ def reformat_to_csv(forecast, date_tm):
     final = final[cols]
     rename = {i: f'{i[:-1 * len(gs.FORECAST_COLUMN) - 1]}' for i in cols}
     final.rename(columns=rename, inplace=True)
-    LOGGER.debug("folder: {folder}")
+    LOGGER.debug(f"folder: {folder}")
     outputXlsxPath = os.path.join(gs.DIR, 'output', 'forecasts', f'{folder}.xlsx')
     final.to_excel(f'{gs.DIR}/output/forecasts/{folder}.xlsx', index=True)
 
