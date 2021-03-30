@@ -36,17 +36,21 @@ def get_observations(date_tm):
         pd.DataFrame: Observational data stored in pandas dataframe
     """
     
-    climate_path_str = f'{gs.SRCDIR}/resources/climate_obs_{date_tm.year}.csv'
+    #climate_path_str = f'{gs.SRCDIR}/resources/climate_obs_{date_tm.year}.csv'
+    #climate_path_str = os.path.join(gs.CLIMATE_OBS_DIR, f'climate_obs_{date_tm.year}.csv')
+    climate_path_str = os.path.join(gs.CLIMATE_OBS_DIR, f'{gs.CLIMATE_OBS_FILE}{date_tm.year}.csv')
     climate_path = pathlib.Path(climate_path_str)
     LOGGER.debug(f"climate_path: {climate_path}")
-    df = pd.read_csv(climate_path)
+    df = pd.read_csv(str(climate_path))
     df['DATE'] = df['DATE'].apply(pd.to_datetime)
     start_bias = date_tm - timedelta(days=gs.BIAS_DAYS)
     if start_bias.year != date_tm.year:
-        clim_obs_path_str = f'{gs.SRCDIR}/resources/climate_obs_{start_bias.year}.csv'
+        #clim_obs_path_str = f'{gs.SRCDIR}/resources/climate_obs_{start_bias.year}.csv'
+        climate_path_str = os.path.join(gs.CLIMATE_OBS_DIR, f'{gs.CLIMATE_OBS_FILE}{start_bias.year}.csv')
+
         clim_obj_path = pathlib.Path(clim_obs_path_str)
         LOGGER.debug(f"clim_obj_path: {clim_obj_path}")
-        df_two = pd.read_csv(clim_obj_path)
+        df_two = pd.read_csv(str(clim_obj_path))
         df = df.append(df_two)
     df = df.loc[df['DATE'] >= start_bias]
     LOGGER.debug(f"df: {df}")
@@ -125,7 +129,7 @@ def get_forecast(forecast_time, model, new_forecast):
                       # We include the extra 18 hours to ensure we have full days to aggregate
         try:
             dateFolder = forecast_time.strftime('%Y%m%d%H')
-            pathStr = os.path.join({gs.DIR}, 'models',  model, dateFolder, f'ens_{model}_{hour:03}.csv')
+            pathStr = os.path.join(gs.DIR, 'models',  model, dateFolder, f'ens_{model}_{hour:03}.csv')
             #pathStr = forecast_time.strftime(f'{gs.DIR}models/{model}/%Y%m%d%H/ens_{model}_{hour:03}.csv')
             # using pathlib to keep paths platform independent
             path = pathlib.Path(pathStr)
@@ -275,7 +279,9 @@ def reformat_to_csv(forecast, date_tm):
     folder = date_tm.strftime('%Y-%m-%d')
     forecast['datetime'] = forecast['datetime'].apply(lambda x: x.strftime('%Y-%m-%d'))
     forecast_dir = pathlib.Path(f'{gs.DIR}/output/forecasts', exist_ok=True)
-    os.makedirs(str(forecast_dir))
+    if not os.path.exists(str(forecast_dir)):
+        LOGGER.debug(f"creating the directory: {forecast_dir}")
+        os.makedirs(str(forecast_dir))
 
     for stn in sorted(list(stns)):
         df = forecast.loc[forecast['stn_id'] == stn, cols].set_index('datetime', drop=True)
@@ -288,6 +294,8 @@ def reformat_to_csv(forecast, date_tm):
     final = final[cols]
     rename = {i: f'{i[:-1 * len(gs.FORECAST_COLUMN) - 1]}' for i in cols}
     final.rename(columns=rename, inplace=True)
+    LOGGER.debug(f"folder: {folder}")
+    outputXlsxPath = os.path.join(gs.DIR, 'output', 'forecasts', f'{folder}.xlsx')
     final.to_excel(f'{gs.DIR}/output/forecasts/{folder}.xlsx', index=True)
 
 
