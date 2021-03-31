@@ -114,7 +114,7 @@ def ensemble_regrid(date_tm, model, stations):
 
     folder = date_tm.strftime(f'{gs.DIR}models/{model}/%Y%m%d%H/')
     for hour in ms.models[model]['times']:
-        regrid_file = date_tm.strftime(f'{gs.DIR}models/{model}/%Y%m%d%H/ens_{model}_{hour:03}.grib2')
+        regrid_file = date_tm.strftime(f'{gs.DIR}models/{model}/%Y%m%d%H/ens_{model}_{hour:03}.csv')
         if os.path.isfile(regrid_file):
             continue
 

@@ -130,7 +130,7 @@ def main(m, date_tm, times=None):
         if t > gs.TM_STGS['max']:
             break
 
-        regrid_file = date_tm.strftime(f'{gs.DIR}models/{m}/%Y%m%d%H/ens_{m}_{t:03}.grib2')
+        regrid_file = date_tm.strftime(f'{gs.DIR}models/{m}/%Y%m%d%H/ens_{m}_{t:03}.csv')
         if os.path.isfile(regrid_file):
             continue
 
