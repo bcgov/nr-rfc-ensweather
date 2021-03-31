@@ -76,6 +76,7 @@ node('zavijava_rfc') {
         stage('getConda') {
             bat '''
                 :: ----- get conda ---------
+                echo %RFC_ARTIFACTS_FOLDER%
                 SET minicondaInstallDir=%RFC_ARTIFACTS_FOLDER%\\miniconda
                 SET minicondaInstallFile=miniconda_installer.exe
                 SET minicondaInstallerFullPath=%minicondaInstallDir%\\%minicondaInstallFile%
