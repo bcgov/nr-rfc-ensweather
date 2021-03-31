@@ -92,6 +92,7 @@ node('zavijava_rfc') {
                 )
 
                 if NOT EXIST %minicondaInstallDir%\\condabin (
+                    echo %PATH%
                     SET DRIVELETTER=%minicondaInstallDir:~0,1%
                     %DRIVELETTER%:
                     cd %minicondaInstallDir%
