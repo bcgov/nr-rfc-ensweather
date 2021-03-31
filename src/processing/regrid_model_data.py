@@ -116,7 +116,7 @@ def ensemble_regrid(date_tm, model, stations):
     folder_str = date_tm.strftime(f'{gs.DIR}/models/{model}/%Y%m%d%H/')
     folder = pathlib.Path(folder_str)
     for hour in ms.models[model]['times']:
-        regrid_file_str = date_tm.strftime(f'{gs.DIR}/models/{model}/%Y%m%d%H/ens_{model}_{hour:03}.csv')
+        regrid_file_str = date_tm.strftime(f'{gs.DIR}/models/{model}/%Y%m%d%H/ens_{model}_{hour:03}.csv')  # documenting change from grib2 to csv that I accidentally placed within the merge.
         regrid_file = pathlib.Path(regrid_file_str)
         LOGGER.debug(f"regridfile: {regrid_file}")
         if os.path.isfile(regrid_file):
