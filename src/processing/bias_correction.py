@@ -1,7 +1,9 @@
 from datetime import datetime as dt, timedelta
+import logging
 import os
 import subprocess
 import sys
+import pathlib
 import platform
 from glob import glob
 
@@ -22,6 +24,7 @@ import config.variable_settings as vs
 from config.model_settings import models
 from common.helpers import free_range, get_stations
 
+LOGGER = logging.getLogger(__name__)
 
 def get_observations(date_tm):
     """Pull observational data from stored csv files
@@ -32,14 +35,70 @@ def get_observations(date_tm):
     Returns:
         pd.DataFrame: Observational data stored in pandas dataframe
     """
-    df = pd.read_csv(f'{gs.DIR}resources/climate_obs_{date_tm.year}.csv')
+    
+    #climate_path_str = f'{gs.SRCDIR}/resources/climate_obs_{date_tm.year}.csv'
+    #climate_path_str = os.path.join(gs.CLIMATE_OBS_DIR, f'climate_obs_{date_tm.year}.csv')
+    climate_path_str = os.path.join(gs.CLIMATE_OBS_DIR, f'{gs.CLIMATE_OBS_FILE}{date_tm.year}.csv')
+    climate_path = pathlib.Path(climate_path_str)
+    LOGGER.debug(f"climate_path: {climate_path}")
+    df = pd.read_csv(str(climate_path))
     df['DATE'] = df['DATE'].apply(pd.to_datetime)
     start_bias = date_tm - timedelta(days=gs.BIAS_DAYS)
     if start_bias.year != date_tm.year:
-        df_two = pd.read_csv(f'{gs.DIR}resources/climate_obs_{start_bias.year}.csv')
+        #clim_obs_path_str = f'{gs.SRCDIR}/resources/climate_obs_{start_bias.year}.csv'
+        climate_path_str = os.path.join(gs.CLIMATE_OBS_DIR, f'{gs.CLIMATE_OBS_FILE}{start_bias.year}.csv')
+
+        clim_obj_path = pathlib.Path(clim_obs_path_str)
+        LOGGER.debug(f"clim_obj_path: {clim_obj_path}")
+        df_two = pd.read_csv(str(clim_obj_path))
         df = df.append(df_two)
     df = df.loc[df['DATE'] >= start_bias]
+    LOGGER.debug(f"df: {df}")
     return df
+
+
+def open_subprocess_pipe(cmd):
+    p = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE).communicate()
+    return p[0].decode('utf-8')
+
+
+def get_messages(path, model):
+    """Find the message numbers for the grib files that we want. (ens mean, variable percentiles)
+
+    Args:
+        path (int): File path for the grib we want messages for
+        model (str): Name of the meteorological model grib
+
+    Returns:
+        tuple: Correlated lists of names and grib message numbers
+    """
+    cmd = f'{gs.WGRIB2} {path} -s -n'
+    LOGGER.debug(f"cmd is: {cmd}")
+    res = open_subprocess_pipe(cmd)
+    res = (res.split('\n'))[:-1]
+    LOGGER.debug(f"res: {res}")
+    names = []
+    messages = []
+    for key, meta in vs.metvars.items():
+        for i in res:
+            if meta['mod'][model][1] in i:
+                if 'ens mean' in i:
+                    messages.append(int(i.split(':')[0]))
+                    names.append(f'{key}_mean')
+                if f"{meta['ensemble_percentiles'][0]}%" in i:
+                    messages.append(int(i.split(':')[0]))
+                    names.append(f'{key}_lower_percentile')
+                if f"{meta['ensemble_percentiles'][1]}" in i:
+                    messages.append(int(i.split(':')[0]))
+                    names.append(f'{key}_upper_percentile')
+    names.extend(['lon', 'lat'])
+    messages.extend([3, 12])
+    return names, messages
+
+
+def access_grib(path, message):
+    with pygrib.open(path) as f:
+        return f.message(message)['values']
 
 
 def check_file(path):
@@ -69,14 +128,22 @@ def get_forecast(forecast_time, model, new_forecast):
                       # 12 day bias from 20 days ago is needed
                       # We include the extra 18 hours to ensure we have full days to aggregate
         try:
-            path = forecast_time.strftime(f'{gs.DIR}models/{model}/%Y%m%d%H/ens_{model}_{hour:03}.csv')
-            if check_file(path):
-                df = get_csv(path)
+            dateFolder = forecast_time.strftime('%Y%m%d%H')
+            pathStr = os.path.join(gs.DIR, 'models',  model, dateFolder, f'ens_{model}_{hour:03}.csv')
+            #pathStr = forecast_time.strftime(f'{gs.DIR}models/{model}/%Y%m%d%H/ens_{model}_{hour:03}.csv')
+            # using pathlib to keep paths platform independent
+            path = pathlib.Path(pathStr)
+            LOGGER.debug(f"forecast path: {path}")
+
+            if check_file(str(path)):
+                df = get_csv(str(path))
                 df['forecast'] = forecast_time
                 df['datetime'] = forecast_time + timedelta(hours=hour)
                 dfs.append(pd.DataFrame(df))
-        except Exception as _:
+        except Exception as e:
+            LOGGER.error(f"error: {e}")
             continue
+
     if not dfs:
         return
     data = pd.concat(dfs, sort=True)
@@ -211,7 +278,10 @@ def reformat_to_csv(forecast, date_tm):
     dfs = []
     folder = date_tm.strftime('%Y-%m-%d')
     forecast['datetime'] = forecast['datetime'].apply(lambda x: x.strftime('%Y-%m-%d'))
-    os.makedirs(f'{gs.DIR}/output/forecasts', exist_ok=True)
+    forecast_dir = pathlib.Path(f'{gs.DIR}/output/forecasts', exist_ok=True)
+    if not os.path.exists(str(forecast_dir)):
+        LOGGER.debug(f"creating the directory: {forecast_dir}")
+        os.makedirs(str(forecast_dir))
 
     for stn in sorted(list(stns)):
         df = forecast.loc[forecast['stn_id'] == stn, cols].set_index('datetime', drop=True)
@@ -224,6 +294,8 @@ def reformat_to_csv(forecast, date_tm):
     final = final[cols]
     rename = {i: f'{i[:-1 * len(gs.FORECAST_COLUMN) - 1]}' for i in cols}
     final.rename(columns=rename, inplace=True)
+    LOGGER.debug(f"folder: {folder}")
+    outputXlsxPath = os.path.join(gs.DIR, 'output', 'forecasts', f'{folder}.xlsx')
     final.to_excel(f'{gs.DIR}/output/forecasts/{folder}.xlsx', index=True)
 
 
@@ -238,11 +310,17 @@ def collect_forecasts(date_tm, days_back, model):
     Returns:
         pd.DataFrame: All relevant forecasts.
     """
+    LOGGER.debug(f"date_tm: {date_tm}  days_back: {days_back}  model: {model}")
     forecasts = []
     for forecast_time in free_range(date_tm-timedelta(days=1), date_tm - timedelta(days=days_back), timedelta(days=-1)):
+        LOGGER.debug(f"forcast_time: {forecast_time}")
+
         forecast = get_forecast(forecast_time, model, date_tm)
+        LOGGER.debug(f"forecast: {forecast}")
         if forecast is not None:
+            LOGGER.debug("adding forcast")
             forecasts.append(forecast)
+    LOGGER.debug(f"forcasts are: {forecasts}")
     prev_forecasts = pd.concat(forecasts, sort=True)
     prev_forecasts['day'] = prev_forecasts.datetime.dt.day
     prev_forecasts['month'] = prev_forecasts.datetime.dt.month
@@ -373,6 +451,7 @@ def main(date_tm):
     days_back = gs.BIAS_DAYS + max(gs.ALL_TIMES) // 24 + 1
     corrected_forecasts = []
     for model in models:
+        LOGGER.debug(f"model: {model}")
         # Find all relevant forecasts
         prev_forecasts = collect_forecasts(date_tm, days_back, model)
         adjust_values(prev_forecasts)

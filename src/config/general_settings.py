@@ -1,14 +1,28 @@
 from datetime import datetime as dt
+import os
 # POSSIBLE USER SETTINGS
 # max hours can be set to something lower if a shorter forecast is wanted
 # 9999 is default and will allow for the full run described by TM_STGS
 MAX_HOURS = 9999
 
 # DIR = /path/to/project/repository
-DIR = ''
+# path to where the output data goes
+DIR = os.environ['ENS_WEATHER_DATA']
+
+# path to the climate / weather station observations files
+CLIMATE_OBS_DIR = os.environ['ENS_CLIMATE_OBS']
+
+# Pattern used to identify climate observation files
+#CLIMATE_OBS_FILE = 'climate_obs_'
+CLIMATE_OBS_FILE = 'ClimateDataOBS_'
+
+# the path to where the source code exists
+# could assume if this env var isn't set that the 
+# path is the dir in __file__
+SRCDIR = os.environ['ENS_HOME']
 
 # WGRIB2 = /path/to/wgrib2/executable
-WGRIB2 = ''
+WGRIB2 = os.environ['WGRIB2EXEC']
 # Which value should ultimately be used for the final forecast
 FORECAST_COLUMN = 'median'
 

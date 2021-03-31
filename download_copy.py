@@ -11,6 +11,8 @@ import urllib.request as lib
 import dateutil.parser
 import requests
 
+from ens_processing import LOGGER
+
 base = '/'.join(__file__.split('/')[:-2])
 if base not in sys.path:
     sys.path.append(base)
@@ -46,10 +48,14 @@ class myThread (threading.Thread):
 class Download():
 
     def __init__(self, model, pre, fname, run: dt.datetime):
+        dateFolder = run.strftime("%Y%m%d%H")
         if 'file=' in fname:
-            self.fp = f'{params.DIR}models/{model}/{run.strftime("%Y%m%d%H")}/{fname.replace("/", "_")[fname.find("file=")+5:fname.find("&")]}'
+            fileName = f'{fname.replace("/", "_")[fname.find("file=")+5:fname.find("&")]}'
+            #self.fp = f'{params.DIR}/models/{model}/{run.strftime("%Y%m%d%H")}/{fname.replace("/", "_")[fname.find("file=")+5:fname.find("&")]}'
         else:
-            self.fp = f'{params.DIR}models/{model}/{run.strftime("%Y%m%d%H")}/{fname.replace("/", "_")}'
+            fileName = f'{fname.replace("/", "_")}'
+            #self.fp = f'{params.DIR}/models/{model}/{run.strftime("%Y%m%d%H")}/{fname.replace("/", "_")}'
+        self.fp = os.path.join(params.DIR, model, dateFolder, fileName)
         if model == 'met_fr' and 'acc' in fname:
             self.fp = self.fp.replace('acc_0-', '')
         self.TIMEOUT = d.models[model]['timeout']
@@ -108,13 +114,19 @@ def make_dir(m, cr: dt.datetime):
     Returns:
         None
     """
-    path = pathlib.Path(f'{params.DIR}models/{m}/{cr.strftime("%Y%m%d%H")}/')
+    #path = pathlib.Path(f'{params.DIR}models/{m}/{cr.strftime("%Y%m%d%H")}/')
+    pathStr = os.path.join(params.DIR, 'models', m, cr.strftime("%Y%m%d%H"))
+    path = pathlib.Path(pathStr)
+    LOGGER.debug(f"pathStr: {pathStr}")
     path.mkdir(parents=True, exist_ok=True)
 
 
 def check_downloads(model, runtime, url_list):
     expected = len(url_list)
-    base = runtime.strftime(f'{params.DIR}models/{model}/%Y%m%d%H/*')
+    dateFolder = runtime.strftime(f'%Y%m%d%H')
+    base = os.path.join(params.DIR, 'models', model, dateFolder, '*')
+    LOGGER.debug(f"base: {base}")
+    #base = runtime.strftime(f'{params.DIR}models/{model}/%Y%m%d%H/*')
     files = glob(base)
     exist = 0
     for i in files:

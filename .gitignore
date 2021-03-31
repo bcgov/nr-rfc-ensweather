@@ -10,5 +10,18 @@ tmp
 .vscode
 .pytest_cache
 .DS_Store
+.env
 
 *pyc
+condaenv
+
+wgrib*
+cygdir
+cygpackages
+setup.log
+setup.log.full
+tmp
+
+cicd/junk
+cicd/artifacts
+junk*
