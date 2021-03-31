@@ -93,7 +93,7 @@ node('zavijava_rfc') {
                     SET DRIVELETTER=%minicondaInstallDir:~0,1%
                     %DRIVELETTER%:
                     cd %minicondaInstallDir%
-                    dir
+                    dir %DRIVELETTER%:
                     %minicondaInstallFile% /S /InstallationType=JustMe AddToPath=0 /RegisterPython=0 /D=%minicondaInstallDir%
                 )
             '''
