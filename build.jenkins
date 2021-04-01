@@ -47,7 +47,6 @@ node('zavijava_rfc') {
             echo cygpackages %cygpackages%
             echo cygSetup %cygSetup%
 
-
             if NOT EXIST %cygdir% (
                 mkdir %cygdir%
             )
@@ -77,10 +76,12 @@ node('zavijava_rfc') {
         stage('getConda') {
             bat '''
                 :: ----- get conda ---------
+                echo %RFC_ARTIFACTS_FOLDER%
                 SET minicondaInstallDir=%RFC_ARTIFACTS_FOLDER%\\miniconda
-                SET minicondaInstallFile=miniconda_installer.zip
+                SET minicondaInstallFile=miniconda_installer.exe
                 SET minicondaInstallerFullPath=%minicondaInstallDir%\\%minicondaInstallFile%
                 SET minicondaURL=https://repo.anaconda.com/miniconda/Miniconda3-latest-Windows-x86_64.exe
+                SET DRIVELETTER=%minicondaInstallDir:~0,1%
 
                 if NOT EXIST %minicondaInstallDir% (
                     mkdir %minicondaInstallDir%
@@ -91,9 +92,9 @@ node('zavijava_rfc') {
                 )
 
                 if NOT EXIST %minicondaInstallDir%\\condabin (
-                    SET DRIVELETTER=%minicondaInstallDir:~0,1%
                     %DRIVELETTER%:
                     cd %minicondaInstallDir%
+                    dir %DRIVELETTER%:
                     %minicondaInstallFile% /S /InstallationType=JustMe AddToPath=0 /RegisterPython=0 /D=%minicondaInstallDir%
                 )
             '''

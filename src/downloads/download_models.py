@@ -137,7 +137,7 @@ def main(m, date_tm, times=None):
     for t in times:
         if t > gs.TM_STGS['max']:
             break
-        regrid_str = date_tm.strftime(f'{gs.DIR}/models/{m}/%Y%m%d%H/ens_{m}_{t:03}.grib2')
+        regrid_str = date_tm.strftime(f'{gs.DIR}/models/{m}/%Y%m%d%H/ens_{m}_{t:03}.csv')  # documenting change from grib2 to csv that I accidentally placed within the merge.
         regrid_file = pathlib.Path(regrid_str)
         if os.path.isfile(regrid_file):
             LOGGER.debug(f"regrid_file: {regrid_file} exists")
