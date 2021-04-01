@@ -92,7 +92,6 @@ node('zavijava_rfc') {
                 )
 
                 if NOT EXIST %minicondaInstallDir%\\condabin (
-                    echo drive letter is %DRIVELETTER%
                     %DRIVELETTER%:
                     cd %minicondaInstallDir%
                     dir %DRIVELETTER%:
