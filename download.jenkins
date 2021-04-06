@@ -3,9 +3,7 @@ node('zavijava_rfc') {
         "JOB_NAME=EnsembleWeather_build", 
         "TEMP=$WORKSPACE\\tmp",
         "TMP=$WORKSPACE\\tmp",
-        "no_proxy=github.com",
-        "BUILDENV=TEST",
-        "jobname=ensemble_weather_BUILD_${env.BUILDENV}"
+        "no_proxy=github.com"
         ]) {
         stage('checkout') {
             //sh 'if [ ! -d "$TEMP" ]; then mkdir $TEMP; fi'
@@ -13,16 +11,14 @@ node('zavijava_rfc') {
         } 
         // ensemble_weather_BUILD_TEST
         stage('build') {
-            
-                build job: "ensemble_weather_BUILD_${env.BUILDENV}",
-                parameters: [
-                    string(name: 'TAGNAME', value: "${TAGNAME}"), 
-                    string(name: 'no_proxy', value: "${no_proxy}"), 
-                    string(name: 'RFC_ARTIFACTS_FOLDER', value: "${RFC_ARTIFACTS_FOLDER}"), 
-                    string(name: 'ENS_NETWORK_DRIVE', value: "${ENS_NETWORK_DRIVE}"), 
-                    string(name: 'ENS_DRIVEMAPPING', value: "${ENS_DRIVEMAPPING}"), 
-                    string(name: 'ENS_WEATHER_DATA', value: "${ENS_WEATHER_DATA}")]
-            
+            build job: "ensemble_weather_BUILD_${env.BUILDENV}",
+            parameters: [
+                string(name: 'TAGNAME', value: "${TAGNAME}"), 
+                string(name: 'no_proxy', value: "${no_proxy}"), 
+                string(name: 'RFC_ARTIFACTS_FOLDER', value: "${RFC_ARTIFACTS_FOLDER}"), 
+                string(name: 'ENS_NETWORK_DRIVE', value: "${ENS_NETWORK_DRIVE}"), 
+                string(name: 'ENS_DRIVEMAPPING', value: "${ENS_DRIVEMAPPING}"), 
+                string(name: 'ENS_WEATHER_DATA', value: "${ENS_WEATHER_DATA}")]
         }
         stage('prepClimateObsData') {
             bat '''
