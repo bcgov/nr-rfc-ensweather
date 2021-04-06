@@ -4,7 +4,8 @@ node('zavijava_rfc') {
         "TEMP=$WORKSPACE\\tmp",
         "TMP=$WORKSPACE\\tmp",
         "no_proxy=github.com",
-        "ENV=TEST"
+        "ENV=TEST", 
+        "jobname=ensemble_weather_BUILD_${env.ENV}"
         ]) {
         stage('checkout') {
             //sh 'if [ ! -d "$TEMP" ]; then mkdir $TEMP; fi'
@@ -12,7 +13,7 @@ node('zavijava_rfc') {
         } 
         // ensemble_weather_BUILD_TEST
         stage('build') {
-            build job: 'ensemble_weather_BUILD_${env.ENV}',
+            build job: "${env.jobname}",
             parameters: [
                 string(name: 'TAGNAME', value: "${TAGNAME}"), 
                 string(name: 'no_proxy', value: "${no_proxy}"), 
