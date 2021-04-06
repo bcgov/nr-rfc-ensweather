@@ -7,10 +7,10 @@ remapped
 errors
 tmp
 
-.vscode
+//.vscode
 .pytest_cache
 .DS_Store
-.env
+.env*
 
 *pyc
 condaenv
@@ -25,3 +25,4 @@ tmp
 cicd/junk
 cicd/artifacts
 junk*
+output.log
