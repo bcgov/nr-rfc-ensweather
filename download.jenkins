@@ -5,7 +5,7 @@ node('zavijava_rfc') {
         "TMP=$WORKSPACE\\tmp",
         "no_proxy=github.com",
         "ENV=TEST", 
-        "jobname=ensemble_weather_BUILD_${env.ENV}"
+        "jobname=ensemble_weather_BUILD_$ENV"
         ]) {
         stage('checkout') {
             //sh 'if [ ! -d "$TEMP" ]; then mkdir $TEMP; fi'
