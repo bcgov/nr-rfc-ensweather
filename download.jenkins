@@ -13,10 +13,6 @@ node('zavijava_rfc') {
         } 
         // ensemble_weather_BUILD_TEST
         stage('build') {
-            steps {
-                script {
-                    env.jobname = "jobname=ensemble_weather_BUILD_$BUILDENV"
-                }
             
                 build job: "ensemble_weather_BUILD_${env.BUILDENV}",
                 parameters: [
@@ -26,7 +22,7 @@ node('zavijava_rfc') {
                     string(name: 'ENS_NETWORK_DRIVE', value: "${ENS_NETWORK_DRIVE}"), 
                     string(name: 'ENS_DRIVEMAPPING', value: "${ENS_DRIVEMAPPING}"), 
                     string(name: 'ENS_WEATHER_DATA', value: "${ENS_WEATHER_DATA}")]
-            }
+            
         }
         stage('prepClimateObsData') {
             bat '''
