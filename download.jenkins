@@ -8,9 +8,10 @@ node('zavijava_rfc') {
         stage('checkout') {
             //sh 'if [ ! -d "$TEMP" ]; then mkdir $TEMP; fi'
             checkout([$class: 'GitSCM', branches: [[name: "${env.TAGNAME}"]], extensions: [], userRemoteConfigs: [[url: 'https://github.com/bcgov/nr-rfc-ensweather']]])
-        }
+        } 
+        // ensemble_weather_BUILD_TEST
         stage('build') {
-            build job: 'ensemble_weather_build',
+            build job: "ensemble_weather_BUILD_${env.BUILDENV}",
             parameters: [
                 string(name: 'TAGNAME', value: "${TAGNAME}"), 
                 string(name: 'no_proxy', value: "${no_proxy}"), 
