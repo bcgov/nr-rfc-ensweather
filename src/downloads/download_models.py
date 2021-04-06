@@ -140,7 +140,7 @@ def main(m, date_tm, times=None):
             break
         regrid_str = date_tm.strftime(f'{gs.DIR}/models/{m}/%Y%m%d%H/ens_{m}_{t:03}.csv')  # documenting change from grib2 to csv that I accidentally placed within the merge.
         regrid_file = pathlib.Path(regrid_str)
-        LOGGER.debug("regrid file check: {regrid_file}")
+        LOGGER.debug(f"regrid file check: {regrid_file}")
         if os.path.isfile(regrid_file):
             LOGGER.debug(f"regrid_file: {regrid_file} exists")
             continue

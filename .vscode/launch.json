@@ -1,0 +1,27 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        // windows debugging
+        // example debugging env file to create
+        // ---- .env-gts
+        // --------------
+        // ENS_WEATHER_DATA=<output data, downloads and processing>
+        // ENS_CLIMATE_OBS=<path to climate obs data>
+        // ENS_HOME=path to where the code is that is being run
+        // WGRIB2EXEC=path to wgrib2 exe
+        // PATH=append all the paths together for conda env and cygwin
+        // --------------
+        {
+            "name": "Python: ENS_WEATHER",
+            "type": "python",
+            "python.pythonPath": "V:\\rfc_processing_artifacts\\rfc_conda_envs\\nr-rfc-ensweather\\python.exe",
+            "request": "launch",
+            "program": ".\\src\\ens_processing.py",
+            "console": "integratedTerminal",
+            "envFile": "${workspaceRoot}/.env-gts"
+        }
+    ]
+}
