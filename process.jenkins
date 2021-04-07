@@ -10,7 +10,7 @@ node('zavijava_rfc') {
             checkout([$class: 'GitSCM', branches: [[name: "${env.TAGNAME}"]], extensions: [], userRemoteConfigs: [[url: 'https://github.com/bcgov/nr-rfc-ensweather']]])
         }
         stage('build') {
-            build job: 'ensemble_weather_BUILD_${env.BUILDENV}',
+            build job: "ensemble_weather_BUILD_${env.BUILDENV}",
             parameters: [
                 string(name: 'TAGNAME', value: "${TAGNAME}"), 
                 string(name: 'no_proxy', value: "${no_proxy}"), 
