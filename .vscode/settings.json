@@ -1,0 +1,17 @@
+{
+    "shellLauncher.shells.windows": [
+        {
+            "shell": "C:\\Windows\\system32\\cmd.exe",
+            "label": "cmd"
+        },
+        {
+            "shell": "C:\\Windows\\system32\\WindowsPowerShell\\v1.0\\powershell.exe",
+            "label": "PowerShell"
+        },
+        {
+            "shell": "C:\\Program Files\\Git\\bin\\bash.exe",
+            "label": "Git bash"
+        }
+    ],
+    "git.ignoreLimitWarning": true,
+    { "extensions": [ ".jenkins", ".jenkinsfile" ], "filenames": [ "jenkinsfile", "Jenkinsfile_process" ] }}
