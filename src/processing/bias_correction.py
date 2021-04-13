@@ -393,7 +393,9 @@ def normalize_precip(forecast, individual, model=None):
 
 
 def get_raw_forecasts(date_tm):
-    raw_files = glob(date_tm.strftime(f'{gs.DIR}/tmp/%Y%m%d%H_*'))
+    globstr = date_tm.strftime(f'{gs.DIR}/tmp/%Y%m%d%H_*')
+    LOGGER.debug(f"glob str: {globstr}")
+    raw_files = glob(globstr)
     dfs = []
     LOGGER.debug(f"datetime: {date_tm}, glob length: {len(raw_files)}")
     for raw in raw_files:
