@@ -47,7 +47,7 @@ node('zavijava_rfc') {
                 call conda.bat activate %condaEnvPath%
 
                 @REM -------- run the ens weather --------
-                %condaEnvPath%\\python src\\ens_processing.py -p
+                %condaEnvPath%\\python src\\ens_processing.py -p -r 20210413_00
 
                 echo completed run
             '''
