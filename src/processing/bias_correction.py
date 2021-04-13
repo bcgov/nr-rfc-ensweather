@@ -396,6 +396,7 @@ def get_raw_forecasts(date_tm):
     raw_files = glob(date_tm.strftime(f'{gs.DIR}/tmp/%Y%m%d%H_*'))
     dfs = []
     for raw in raw_files:
+        LOGGER.debug(f"input raw file: {raw}")
         hour = int(raw.split('_')[-1])
         df = pd.read_csv(raw)
         df['datetime'] = date_tm + timedelta(hours=hour)
