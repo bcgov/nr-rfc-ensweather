@@ -48,7 +48,7 @@ def get_observations(date_tm):
         #clim_obs_path_str = f'{gs.SRCDIR}/resources/climate_obs_{start_bias.year}.csv'
         climate_path_str = os.path.join(gs.CLIMATE_OBS_DIR, f'{gs.CLIMATE_OBS_FILE}{start_bias.year}.csv')
 
-        clim_obj_path = pathlib.Path(clim_obs_path_str)
+        clim_obj_path = pathlib.Path(climate_path_str)
         LOGGER.debug(f"clim_obj_path: {clim_obj_path}")
         df_two = pd.read_csv(str(clim_obj_path))
         df = df.append(df_two)
