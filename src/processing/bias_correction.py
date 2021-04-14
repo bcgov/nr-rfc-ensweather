@@ -35,7 +35,7 @@ def get_observations(date_tm):
     Returns:
         pd.DataFrame: Observational data stored in pandas dataframe
     """
-    
+
     #climate_path_str = f'{gs.SRCDIR}/resources/climate_obs_{date_tm.year}.csv'
     #climate_path_str = os.path.join(gs.CLIMATE_OBS_DIR, f'climate_obs_{date_tm.year}.csv')
     climate_path_str = os.path.join(gs.CLIMATE_OBS_DIR, f'{gs.CLIMATE_OBS_FILE}{date_tm.year}.csv')
@@ -378,14 +378,16 @@ def normalize_precip(forecast, individual, model=None):
     """
     last_day = forecast['agg_day'].max()
     copy = forecast.copy()
-    forecast.set_index(['stn_id', 'agg_day'], inplace=True, drop=True)
     copy = copy.loc[copy['agg_day'] < last_day]
     copy['agg_day'] += 1
-    copy.set_index(['stn_id', 'agg_day'], inplace=True, drop=True)
     if not individual:
+        forecast.set_index(['stn_id', 'forecast', 'agg_day'], inplace=True, drop=True)
+        copy.set_index(['stn_id', 'forecast', 'agg_day'], inplace=True, drop=True)
         for suffix in vs.metvars['precip']['ensemble_values']:
             forecast.loc[copy.index, f'precip_{suffix}'] -= copy.loc[copy.index, f'precip_{suffix}']
     else:
+        forecast.set_index(['stn_id', 'agg_day'], inplace=True, drop=True)
+        copy.set_index(['stn_id', 'agg_day'], inplace=True, drop=True)
         for suffix in range(1, models[model]['ensemble_members'] + 1):
             forecast.loc[copy.index, f'precip_{suffix}'] -= copy.loc[copy.index, f'precip_{suffix}']
 
