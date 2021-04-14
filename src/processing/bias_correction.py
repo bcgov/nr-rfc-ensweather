@@ -35,7 +35,7 @@ def get_observations(date_tm):
     Returns:
         pd.DataFrame: Observational data stored in pandas dataframe
     """
-    
+
     #climate_path_str = f'{gs.SRCDIR}/resources/climate_obs_{date_tm.year}.csv'
     #climate_path_str = os.path.join(gs.CLIMATE_OBS_DIR, f'climate_obs_{date_tm.year}.csv')
     climate_path_str = os.path.join(gs.CLIMATE_OBS_DIR, f'{gs.CLIMATE_OBS_FILE}{date_tm.year}.csv')
@@ -48,7 +48,7 @@ def get_observations(date_tm):
         #clim_obs_path_str = f'{gs.SRCDIR}/resources/climate_obs_{start_bias.year}.csv'
         climate_path_str = os.path.join(gs.CLIMATE_OBS_DIR, f'{gs.CLIMATE_OBS_FILE}{start_bias.year}.csv')
 
-        clim_obj_path = pathlib.Path(clim_obs_path_str)
+        clim_obj_path = pathlib.Path(climate_path_str)
         LOGGER.debug(f"clim_obj_path: {clim_obj_path}")
         df_two = pd.read_csv(str(clim_obj_path))
         df = df.append(df_two)
@@ -378,14 +378,16 @@ def normalize_precip(forecast, individual, model=None):
     """
     last_day = forecast['agg_day'].max()
     copy = forecast.copy()
-    forecast.set_index(['stn_id', 'agg_day'], inplace=True, drop=True)
     copy = copy.loc[copy['agg_day'] < last_day]
     copy['agg_day'] += 1
-    copy.set_index(['stn_id', 'agg_day'], inplace=True, drop=True)
     if not individual:
+        forecast.set_index(['stn_id', 'forecast', 'agg_day'], inplace=True, drop=True)
+        copy.set_index(['stn_id', 'forecast', 'agg_day'], inplace=True, drop=True)
         for suffix in vs.metvars['precip']['ensemble_values']:
             forecast.loc[copy.index, f'precip_{suffix}'] -= copy.loc[copy.index, f'precip_{suffix}']
     else:
+        forecast.set_index(['stn_id', 'agg_day'], inplace=True, drop=True)
+        copy.set_index(['stn_id', 'agg_day'], inplace=True, drop=True)
         for suffix in range(1, models[model]['ensemble_members'] + 1):
             forecast.loc[copy.index, f'precip_{suffix}'] -= copy.loc[copy.index, f'precip_{suffix}']
 
@@ -393,9 +395,13 @@ def normalize_precip(forecast, individual, model=None):
 
 
 def get_raw_forecasts(date_tm):
-    raw_files = glob(date_tm.strftime(f'{gs.DIR}/tmp/%Y%m%d%H_*'))
+    globstr = date_tm.strftime(f'{gs.DIR}/tmp/%Y%m%d%H_*')
+    LOGGER.debug(f"glob str: {globstr}")
+    raw_files = glob(globstr)
     dfs = []
+    LOGGER.debug(f"datetime: {date_tm}, glob length: {len(raw_files)}")
     for raw in raw_files:
+        LOGGER.debug(f"input raw file: {raw}")
         hour = int(raw.split('_')[-1])
         df = pd.read_csv(raw)
         df['datetime'] = date_tm + timedelta(hours=hour)

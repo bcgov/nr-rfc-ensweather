@@ -499,6 +499,7 @@ class Test_Unit:
         }
         monkeypatch.setattr(bc.vs, 'metvars', metvars)
         df = pd.DataFrame({
+            'forecast': [1, 1, 1, 1, 1, 1],
             'precip_mean': [1, 2, 3, 2, 3.5, 5.5],
             'precip_min': [0, 1, 1, 1.5, 2.5, 4.5],
             'precip_max': [2, 4, 6, 2.5, 5.5, 8],
@@ -506,10 +507,38 @@ class Test_Unit:
             'agg_day': [0, 1, 2, 0, 1, 2],
         })
         exp = pd.DataFrame({
+            'forecast': [1, 1, 1, 1, 1, 1],
             'precip_mean': [1, 1, 1, 2, 1.5, 2],
             'precip_min': [0, 1, 0, 1.5, 1, 2],
             'precip_max': [2, 2, 2, 2.5, 3, 2.5],
             'stn_id': [1, 1, 1, 2, 2, 2],
+            'agg_day': [0, 1, 2, 0, 1, 2],
+        })
+        bc.normalize_precip(df, False)
+        assert_frame_equal(df, exp, check_like=True)
+
+    def test_normalize_precip_multiple_forecasts(self, monkeypatch):
+        metvars = {
+            'precip': {
+                'correction': 'ratio',
+                'ensemble_values': ['mean', 'max', 'min'],
+            },
+        }
+        monkeypatch.setattr(bc.vs, 'metvars', metvars)
+        df = pd.DataFrame({
+            'forecast': [1, 1, 1, 2, 2, 2],
+            'precip_mean': [1, 2, 3, 2, 3.5, 5.5],
+            'precip_min': [0, 1, 1, 1.5, 2.5, 4.5],
+            'precip_max': [2, 4, 6, 2.5, 5.5, 8],
+            'stn_id': [1, 1, 1, 1, 1, 1],
+            'agg_day': [0, 1, 2, 0, 1, 2],
+        })
+        exp = pd.DataFrame({
+            'forecast': [1, 1, 1, 2, 2, 2],
+            'precip_mean': [1, 1, 1, 2, 1.5, 2],
+            'precip_min': [0, 1, 0, 1.5, 1, 2],
+            'precip_max': [2, 2, 2, 2.5, 3, 2.5],
+            'stn_id': [1, 1, 1, 1, 1, 1],
             'agg_day': [0, 1, 2, 0, 1, 2],
         })
         bc.normalize_precip(df, False)

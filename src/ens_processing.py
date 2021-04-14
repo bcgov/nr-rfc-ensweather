@@ -108,6 +108,7 @@ def main(args):
             else:
                 bias_correction.main(run_time)
     except Exception as e:
+        LOGGER.exception("")
         LOGGER.error(f'Failure running program. {e}')
 
 
