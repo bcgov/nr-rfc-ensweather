@@ -1,4 +1,7 @@
 # BC FORECASTING
+
+[![Lifecycle:Stable](https://img.shields.io/badge/Lifecycle-Stable-97ca00)](<Redirect-URL>)
+
 This project was designed by Weatherlogics for the use of the B.C. government for the purposes of bias correcting and forecasting for individual stations run by the B.C. government using the GEPS (Global Ensemble Prediction System).
 
 ## Install
