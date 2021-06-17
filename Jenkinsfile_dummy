@@ -1,4 +1,4 @@
-node('master') {
+node('macaroni') {
     withEnv([
         "JOB_NAME=EnsembleWeather_build", 
         "TEMP=$WORKSPACE\\tmp",
