@@ -1,4 +1,4 @@
-node('zavijava-rfc') {
+node('zavijava_rfc') {
     withEnv([
         "JOB_NAME=EnsembleWeather_build", 
         "TEMP=$WORKSPACE\\tmp",
