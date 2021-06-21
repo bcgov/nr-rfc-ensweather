@@ -1,7 +1,11 @@
 node('zavijava') {
-    environment {
-       NO_PROXY=github.com
-    }
+    withEnv([
+        "JOB_NAME=EnsembleWeather_build", 
+        "TEMP=$WORKSPACE\\tmp",
+        "TMP=$WORKSPACE\\tmp",
+        "GIT_CURL_VERBOSE=1",
+        "NO_PROXY=github.com"
+        ]) {
         stage('echo') {
             bat '''
                 echo running away
@@ -18,5 +22,5 @@ node('zavijava') {
                 echo running away
             '''
         }
-    
+    }
 }
