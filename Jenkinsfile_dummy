@@ -2,8 +2,7 @@ node('zavijava') {
     withEnv([
         "JOB_NAME=EnsembleWeather_build", 
         "TEMP=$WORKSPACE\\tmp",
-        "TMP=$WORKSPACE\\tmp",
-        "no_proxy=github.com"
+        "TMP=$WORKSPACE\\tmp"
         ]) {
         stage('echo') {
             bat '''
