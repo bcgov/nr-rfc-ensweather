@@ -2,7 +2,6 @@ node('zavijava') {
     environment {
        NO_PROXY=github.com
     }
-    stages {
         stage('echo') {
             bat '''
                 echo running away
@@ -19,5 +18,5 @@ node('zavijava') {
                 echo running away
             '''
         }
-    }
+    
 }
