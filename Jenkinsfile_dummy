@@ -8,7 +8,7 @@ node('zavijava') {
             bat '''
                 echo running away
                 set
-           
+                git config --global -l
             '''
         }
         stage('checkout') {
