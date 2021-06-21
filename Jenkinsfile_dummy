@@ -5,6 +5,13 @@ node('zavijava') {
         "TMP=$WORKSPACE\\tmp",
         "no_proxy=github.com"
         ]) {
+        stage('echo') {
+            bat '''
+                echo running away
+                set
+           
+            '''
+        }
         stage('checkout') {
             //sh 'if [ ! -d "$TEMP" ]; then mkdir $TEMP; fi'
             checkout([$class: 'GitSCM', branches: [[name: "${env.TAGNAME}"]], extensions: [], userRemoteConfigs: [[url: 'https://github.com/bcgov/nr-rfc-ensweather']]])
