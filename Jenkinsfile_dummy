@@ -4,7 +4,8 @@ node('zavijava') {
         "TEMP=$WORKSPACE\\tmp",
         "TMP=$WORKSPACE\\tmp",
         "GIT_CURL_VERBOSE=1",
-        "NO_PROXY=github.com"
+        "NO_PROXY=github.com",
+        "no_proxy=github.com"
         ]) {
         stage('echo') {
             bat '''
