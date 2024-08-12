@@ -23,6 +23,13 @@ jobs:
       OBJ_STORE_USER: ${{ secrets.OBJ_STORE_USER }}
       OBJ_STORE_HOST: ${{ secrets.OBJ_STORE_HOST }}
       WGRIB_UTILITY: /usr/local/bin/wgrib2
+      ENS_WEATHER_DATA: ensemble_weather
+      ENS_DRIVEMAPPING: Z
+      ENS_NETWORK_DRIVE: \\sewer.dmz\Shared
+      RFC_ARTIFACTS_FOLDER: rfc_processing_artifacts
+      ENS_CLIMATE_OBS: resources
+      ENS_HOME: /home/kysiemen/nr-rfc-ensweather
+      WGRIB2EXEC: /usr/local/bin/wgrib2/wgrib2.exe
 
     steps:
     - uses: actions/checkout@v3
