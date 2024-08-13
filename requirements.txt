@@ -1,7 +1,5 @@
 pyproj==3.6.1
 openpyxl==3.0.6
-pandas==1.2.0
-pygrib==2.1.3
 pytest==6.2.1
 xarray==0.16.2
 nr_objstore_util==0.10.0
