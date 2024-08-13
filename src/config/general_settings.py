@@ -5,6 +5,8 @@ import os
 # 9999 is default and will allow for the full run described by TM_STGS
 MAX_HOURS = 9999
 
+OBJSTORE = 'cmc'
+
 # DIR = /path/to/project/repository
 # path to where the output data goes
 DIR = os.environ['ENS_WEATHER_DATA']
@@ -22,7 +24,8 @@ CLIMATE_OBS_FILE = 'ClimateDataOBS_'
 SRCDIR = os.environ['ENS_HOME']
 
 # WGRIB2 = /path/to/wgrib2/executable
-WGRIB2 = os.environ['WGRIB2EXEC']
+#WGRIB2 = os.environ['WGRIB2EXEC']
+WGRIB2 = os.environ['WGRIB_UTILITY']
 # Which value should ultimately be used for the final forecast
 FORECAST_COLUMN = 'median'
 
@@ -61,7 +64,7 @@ DM = {
 }
 
 # For testing purposes, archived run can be used to run individual modules with this run
-ARCHIVED_RUN = dt(2021, 3, 20, 12)
+ARCHIVED_RUN = dt(2024, 8, 10, 12)
 
 
 # Number of download retries if failures occur
