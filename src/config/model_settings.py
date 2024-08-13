@@ -15,7 +15,8 @@ from config.general_settings import ALL_TIMES
 models = {
     'geps': {
         # model download url base path
-        'url': 'https://dd.weather.gc.ca/ensemble/geps/grib2/raw/%H/{forecast_hour_three}/',
+        #'url': 'https://dd.weather.gc.ca/ensemble/geps/grib2/raw/%H/{forecast_hour_three}/',
+        'url': 'https://hpfx.collab.science.gc.ca/%Y%m%d/WXO-DD/ensemble/geps/grib2/raw/%H/{forecast_hour_three}/',
         # model download url file path
         'fn': 'CMC_geps-raw_{grib_name}_latlon0p5x0p5_%Y%m%d%H_P{forecast_hour_three}_allmbrs.grib2',
         # number of days of forecasts expected to be found archived by the forecast creator. (Environment Canada in this case)
