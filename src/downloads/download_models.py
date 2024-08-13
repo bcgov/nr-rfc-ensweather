@@ -5,6 +5,7 @@ import shutil
 import sys
 import threading
 import urllib.request as lib
+import NRUtil.NRObjStoreUtil as NRObjStoreUtil
 from datetime import datetime as dt, timedelta
 from glob import glob
 import platform
@@ -120,7 +121,12 @@ def check_downloads(download_folder, expected, file_size=1000):
         print('not working')
         return False
     return True
-
+    
+def send_to_objstore(download_folder):
+    ostore = NRObjStoreUtil.ObjectStoreUtil()
+    files = glob(str(download_folder))
+    for i in files:
+        ostore.put_object(local_path=i, ostore_path=os.path.join(gs.OBJSTORE,i))
 
 def main(m, date_tm, times=None):
     LOGGER.debug("main called from download_models")
@@ -173,6 +179,7 @@ def main(m, date_tm, times=None):
 
     else:
         print(f'The {m.upper()} is not available for cycle: {date_tm}')
+    send_to_objstore(download_folder)
 
 
 if __name__ == '__main__':
