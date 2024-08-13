@@ -45,6 +45,7 @@ jobs:
       name: install python dependencies
       shell: bash
       run: |
+        sudo apt install python3-grib
         pip install --upgrade pip
         pip install -r requirements.txt
 
