@@ -152,7 +152,7 @@ def main(m, date_tm, times=None):
             continue
 
         for v in vs.metvars:
-            if((t > 0) or (t == 0 and vs.metvars[v]['acc'] is False)):
+            if((t > 0) or (t == 0 and v != 'precip')):
                 # if there is only surface data
                 res = h.fmt_orig_fn(date_tm, t, m, var=vs.metvars[v]['mod'][m])
                 if(res is not None):
@@ -185,5 +185,5 @@ def main(m, date_tm, times=None):
 if __name__ == '__main__':
     current_date = dt.now()
     latest_run = current_date.replace(hour=12)
-    main('geps', latest_run)
+    main('reps', latest_run)
     #main('geps', gs.ARCHIVED_RUN)
