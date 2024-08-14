@@ -49,9 +49,9 @@ BIAS_DAYS = 15
 
 # Forecast time range (6, 12 , 18...378, 384)
 TM_STGS = {
-    'min': 6,
+    'min': 0,
     'max': 384,
-    'space': 6,
+    'space': 3,
 }
 
 
