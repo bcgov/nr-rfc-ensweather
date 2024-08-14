@@ -15,7 +15,7 @@ from config.general_settings import ALL_TIMES
 models = {
     'reps': {
         # model download url base path
-        'url': 'https://hpfx.collab.science.gc.ca/%Y%m%d/WXO-DD/ensemble/reps/grib2/%H/{forecast_hour_three}/',
+        'url': 'https://hpfx.collab.science.gc.ca/%Y%m%d/WXO-DD/ensemble/reps/10km/grib2/%H/{forecast_hour_three}/',
         # model download url file path
         'fn': '%Y%m%dT%HZ_MSC_REPS_{grib_name}_RLatLon0.09x0.09_PT{forecast_hour_three}H.grib2',
         # number of days of forecasts expected to be found archived by the forecast creator. (Environment Canada in this case)
