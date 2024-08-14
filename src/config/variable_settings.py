@@ -25,10 +25,12 @@ funcs = {
     'median': np.nanmedian,
 }
 
+
 metvars = {
     'precip': {
         'mod': {
             'geps': ['APCP_SFC_0', 'APCP', 'surface'],
+            'reps': ['APCP_SFC', 'APCP', 'surface'],
         },
         'ensemble_values': ['mean', 'median', 'max', 'min'],
         'percentiles': {
@@ -45,6 +47,7 @@ metvars = {
     'temp': {
         'mod': {
             'geps': ['TMP_TGL_2m', 'TEMP', '2 m above ground'],
+            'reps': ['TMP_AGL-2m', 'TEMP', '2 m above ground'],
         },
         'ensemble_values': ['mean', 'median', 'max', 'min'],
         'percentiles': {
