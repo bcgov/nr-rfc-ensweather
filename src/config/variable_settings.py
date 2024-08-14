@@ -42,9 +42,9 @@ metvars = {
         'unit_offset': 0,
         'correction': 'ratio',
     },
-    't_max': {
+    'temp': {
         'mod': {
-            'geps': ['TMAX_TGL_2m', 'TMAX', '2 m above ground'],
+            'geps': ['TMP_TGL_2m', 'TEMP', '2 m above ground'],
         },
         'ensemble_values': ['mean', 'median', 'max', 'min'],
         'percentiles': {
@@ -55,22 +55,6 @@ metvars = {
         'time_range_length': 12,  # morning to evening max
         'expected_values': 2,
         'aggregate_function': np.nanmax,
-        'unit_offset': 273.15,
-        'correction': 'difference',
-    },
-    't_min': {
-        'mod': {
-            'geps': ['TMIN_TGL_2m', 'TMIN', '2 m above ground'],
-        },
-        'ensemble_values': ['mean', 'median', 'max', 'min'],
-        'percentiles': {
-            25: 'lower_percentile',
-            75: 'upper_percentile',
-        },
-        'utc_time_start': 24,  # 24 hours after 0z run
-        'time_range_length': 12, # evening to next morning min
-        'expected_values': 2,
-        'aggregate_function': np.nanmin,
         'unit_offset': 273.15,
         'correction': 'difference',
     },
