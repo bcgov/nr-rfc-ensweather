@@ -183,4 +183,5 @@ def main(m, date_tm, times=None):
 
 
 if __name__ == '__main__':
-    main('geps', gs.ARCHIVED_RUN)
+    main('geps', dt.utcnow)
+    #main('geps', gs.ARCHIVED_RUN)
