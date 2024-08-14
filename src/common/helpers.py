@@ -77,7 +77,7 @@ def fmt_orig_fn(rt, tm, m, lev=None, var=None):
         'forecast_hour_three': f'{tm:03}',
         'grib_name': var[0] if var is not None else '',
     }
-    if m == 'geps':
-        geps_url = (rt.strftime(ms.models['geps']['url'].format(**kwargs)), rt.strftime(ms.models['geps']['fn'].format(**kwargs)))
+    if m in ['geps','reps']:
+        geps_url = (rt.strftime(ms.models[m]['url'].format(**kwargs)), rt.strftime(ms.models[m]['fn'].format(**kwargs)))
         LOGGER.debug(f'geps_url: {geps_url}') 
         return geps_url
