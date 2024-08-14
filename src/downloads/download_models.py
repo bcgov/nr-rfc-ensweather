@@ -183,5 +183,7 @@ def main(m, date_tm, times=None):
 
 
 if __name__ == '__main__':
-    main('geps', dt.now())
+    current_date = dt.now()
+    latest_run = current_date.replace(hour=12)
+    main('geps', latest_run)
     #main('geps', gs.ARCHIVED_RUN)
