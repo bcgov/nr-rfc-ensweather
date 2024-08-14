@@ -13,6 +13,20 @@ if base not in sys.path:
 from config.general_settings import ALL_TIMES
 
 models = {
+    'reps': {
+        # model download url base path
+        'url': 'https://hpfx.collab.science.gc.ca/%Y%m%d/WXO-DD/ensemble/reps/grib2/%H/{forecast_hour_three}/',
+        # model download url file path
+        'fn': '%Y%m%dT%HZ_MSC_REPS_{grib_name}_RLatLon0.09x0.09_PT{forecast_hour_three}H.grib2',
+        # number of days of forecasts expected to be found archived by the forecast creator. (Environment Canada in this case)
+        'archived_days': 3,
+        # list of times available for download (and needed for download)
+        'times': list(range(0, 72, 3)),
+        # download timeout (in seconds)
+        'timeout': 30,
+        # number of ensemble members included in model statistics
+        'ensemble_members': 20,
+    },
     'geps': {
         # model download url base path
         #'url': 'https://dd.weather.gc.ca/ensemble/geps/grib2/raw/%H/{forecast_hour_three}/',
@@ -22,7 +36,7 @@ models = {
         # number of days of forecasts expected to be found archived by the forecast creator. (Environment Canada in this case)
         'archived_days': 3,
         # list of times available for download (and needed for download)
-        'times': list(range(6, 385, 6)),
+        'times': (list(range(75, 192, 3)) + list(range(198, 384, 6))),
         # download timeout (in seconds)
         'timeout': 30,
         # number of ensemble members included in model statistics
