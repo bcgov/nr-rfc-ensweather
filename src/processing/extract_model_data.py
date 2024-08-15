@@ -112,6 +112,12 @@ def convert_to_csv(date_tm, path, hour, model):
     calculate_stats(df)
     df.to_csv(date_tm.strftime(f'{gs.DIR}/models/{model}/%Y%m%d%H/ens_{model}_{hour:03}.csv'), index=False)
 
+def send_to_objstore(download_folder):
+    ostore = NRObjStoreUtil.ObjectStoreUtil()
+    files = os.listfir(download_folder)
+    for i in files:
+        ostore.put_object(local_path=i, ostore_path=os.path.join(gs.OBJSTORE,i))
+
 def get_from_objstore(folder_path):
     ostore = NRObjStoreUtil.ObjectStoreUtil()
     obj_files = ostore.list_objects(os.path.join(gs.OBJSTORE,folder_path),return_file_names_only=True)
@@ -224,7 +230,7 @@ def regrid_to_csv(date_tm, model, stations):
                 output = df.pivot(columns="StnNum",index="Hour",values=f"{var}_{member+1}")
                 var_symbol = var[:1].upper()
                 output.to_csv(date_tm.strftime(f'{gs.DIR}/TXT/{model}/%Y%m%d%H/MB0{member+1}_{var_symbol}{n+1}.csv'), index=False, header=False)
-        
+    send_to_objstore(txt_dir)
 
 
 def main(date_tm, model):
