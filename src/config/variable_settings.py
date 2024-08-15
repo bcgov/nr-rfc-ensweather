@@ -46,8 +46,8 @@ metvars = {
     },
     'temp': {
         'mod': {
-            'geps': ['TMP_TGL_2m', 'TEMP', '2 m above ground'],
-            'reps': ['TMP_AGL-2m', 'TEMP', '2 m above ground'],
+            'geps': ['TMP_TGL_2m', 'TMP', '2 m above ground'],
+            'reps': ['TMP_AGL-2m', 'TMP', '2 m above ground'],
         },
         'ensemble_values': ['mean', 'median', 'max', 'min'],
         'percentiles': {
