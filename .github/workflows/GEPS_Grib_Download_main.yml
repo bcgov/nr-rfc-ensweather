@@ -61,7 +61,7 @@ jobs:
       name: download grib files
       shell: bash
       run: |
-        python src/downloads/download_models.py
+        python src/extract_forecast_main.py
 
     # - id: debug
     #   name: debug and list files
