@@ -26,3 +26,4 @@ cicd/junk
 cicd/artifacts
 junk*
 output.log
+ensemble_weather/
