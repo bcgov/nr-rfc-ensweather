@@ -7,7 +7,6 @@ from glob import glob
 from time import time
 from datetime import datetime as dt, timedelta
 import platform
-import NRUtil.NRObjStoreUtil as NRObjStoreUtil
 if platform.system() == 'Windows':
     splitter = '\\'
 else:
@@ -21,7 +20,7 @@ import numpy as np
 import pandas as pd
 import pygrib
 
-from common.helpers import get_stations
+from common.helpers import get_stations, send_to_objstore, get_from_objstore
 from config import general_settings as gs
 from config import model_settings as ms
 from config import variable_settings as vs
@@ -112,21 +111,6 @@ def convert_to_csv(date_tm, path, hour, model):
     calculate_stats(df)
     df.to_csv(date_tm.strftime(f'{gs.DIR}/models/{model}/%Y%m%d%H/ens_{model}_{hour:03}.csv'), index=False)
 
-def send_to_objstore(download_folder):
-    ostore = NRObjStoreUtil.ObjectStoreUtil()
-    files = os.listfir(download_folder)
-    for i in files:
-        ostore.put_object(local_path=i, ostore_path=os.path.join(gs.OBJSTORE,i))
-
-def get_from_objstore(folder_path):
-    ostore = NRObjStoreUtil.ObjectStoreUtil()
-    obj_files = ostore.list_objects(os.path.join(gs.OBJSTORE,folder_path),return_file_names_only=True)
-    local_fpaths = os.listdir(folder_path)
-    local_fnames = [path.split('/')[-1] for path in local_fpaths]
-    for i in obj_files:
-        fname = i.split("/")[-1]
-        if fname not in local_fnames:
-            ostore.get_object(local_path=os.path.join(folder_path,fname), file_path=i)
 
 def ensemble_regrid(date_tm, model, stations):
     """Regrid ensemble model from lat/lon grid to ensemble processed station locations

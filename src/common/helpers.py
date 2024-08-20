@@ -3,6 +3,7 @@ import logging
 import os
 import sys
 import pathlib
+import NRUtil.NRObjStoreUtil as NRObjStoreUtil
 
 import numpy as np
 import pandas as pd
@@ -81,3 +82,20 @@ def fmt_orig_fn(rt, tm, m, lev=None, var=None):
         geps_url = (rt.strftime(ms.models[m]['url'].format(**kwargs)), rt.strftime(ms.models[m]['fn'].format(**kwargs)))
         LOGGER.debug(f'geps_url: {geps_url}') 
         return geps_url
+
+def send_to_objstore(download_folder):
+    ostore = NRObjStoreUtil.ObjectStoreUtil()
+    files = os.listdir(download_folder)
+    for i in files:
+        ostore.put_object(local_path=os.path.join(download_folder,i), ostore_path=os.path.join(gs.OBJSTORE,download_folder,i))
+
+def get_from_objstore(folder_path):
+    ostore = NRObjStoreUtil.ObjectStoreUtil()
+    obj_files = ostore.list_objects(os.path.join(gs.OBJSTORE,folder_path),return_file_names_only=True)
+    local_fpaths = os.listdir(folder_path)
+    local_fnames = [path.split('/')[-1] for path in local_fpaths]
+    for i in obj_files:
+        fname = i.split("/")[-1]
+        if fname not in local_fnames:
+            ostore.get_object(local_path=os.path.join(folder_path,fname), file_path=i)
+
