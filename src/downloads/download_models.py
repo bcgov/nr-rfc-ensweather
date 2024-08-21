@@ -172,6 +172,7 @@ def main(m, date_tm, times=None):
 
     else:
         print(f'The {m.upper()} is not available for cycle: {date_tm}')
+    download_folder = date_tm.strftime(f'{gs.DIR}/models/{m}/%Y%m%d%H/')
     h.send_to_objstore(download_folder)
 
 
