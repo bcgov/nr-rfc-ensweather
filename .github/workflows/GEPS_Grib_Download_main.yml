@@ -4,7 +4,7 @@ on:
   # cron schedules are in UTC
   # this job should run at 5.31 am pst, which translates to 1.31 pm.
   schedule:
-    - cron: '0 8 * * *'
+    - cron: '30 16 * * *'
   workflow_dispatch:
   repository_dispatch:
     types: run-geps-grib-download

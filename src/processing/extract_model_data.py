@@ -6,6 +6,8 @@ import sys
 from glob import glob
 from time import time
 from datetime import datetime as dt, timedelta
+import multiprocessing
+import multiprocessing.pool
 import platform
 if platform.system() == 'Windows':
     splitter = '\\'
@@ -111,6 +113,9 @@ def convert_to_csv(date_tm, path, hour, model):
     calculate_stats(df)
     df.to_csv(date_tm.strftime(f'{gs.DIR}/models/{model}/%Y%m%d%H/ens_{model}_{hour:03}.csv'), index=False)
 
+def thread_function(cmd):
+    subprocess.run(cmd, shell=True)
+
 
 def ensemble_regrid(date_tm, model, stations):
     """Regrid ensemble model from lat/lon grid to ensemble processed station locations
@@ -131,6 +136,9 @@ def ensemble_regrid(date_tm, model, stations):
         os.makedirs(folder_str)
     get_from_objstore(folder_str)
     folder = pathlib.Path(folder_str)
+    cmd_list_1 = []
+    cmd_list_2 = []
+    cmd_list_3 = []
     for hour in ms.models[model]['times']:
         regrid_file_str = date_tm.strftime(f'{gs.DIR}/models/{model}/%Y%m%d%H/ens_{model}_{hour:03}.csv')  # documenting change from grib2 to csv that I accidentally placed within the merge.
         regrid_file = pathlib.Path(regrid_file_str)
@@ -154,24 +162,38 @@ def ensemble_regrid(date_tm, model, stations):
 
         #cmd = f'cat {folder}/*_P{hour:03}_*.grib2 > {folder}/cat_{model}_{hour:03}.grib2'
         cmd = f'cat {inputFile} > {outputFile}'
+        cmd_list_1.append(cmd)
         LOGGER.debug(f"cmd: {cmd}")
         print(cmd)
-        subprocess.call(cmd, shell=True)
+        #subprocess.call(cmd, shell=True)
+
+        smallFile = outputFile.replace('cat','small')
+        cmd = f'{gs.WGRIB2} {outputFile} -small_grib 220:247 47:62 {smallFile}'
+        cmd_list_2.append(cmd)
+        #subprocess.call(cmd, shell=True)
 
         # regrid cat file to station locations
         # also converting back to / slash delimiters due to usage of cygwin command line
-        input_grib_path = os.path.join(f'{folder}', f'cat_{model}_{hour:03}.grib2').replace(os.sep, '/')
+        #input_grib_path = os.path.join(f'{folder}', f'cat_{model}_{hour:03}.grib2').replace(os.sep, '/')
+        input_grib_path = os.path.join(f'{folder}', f'small_{model}_{hour:03}.grib2').replace(os.sep, '/')
         for n in range(num_stn_files):
             regrid_path = os.path.join(f'{folder}', f'regrid_{model}_{hour:03}_{n}.grib2').replace(os.sep, '/')
             cmd = f'{gs.WGRIB2} {input_grib_path} -new_grid location {stn_list[n]} 0 {regrid_path}'
+            cmd_list_3.append(cmd)
             #cmd = f'{gs.WGRIB2} {input_grib_path} -lon {stn_list[n]}'
-            p = subprocess.run(cmd, shell=True, capture_output=True, text=True)
-            
+            #p = subprocess.run(cmd, shell=True)
         #convert_to_csv(date_tm, regrid_path, hour, model)
         # ensemble process grid to final ens_grid
         # cmd = f'{gs.WGRIB2} {regrid_path} -ncpu 1 -ens_processing {folder}ens_{model}_{hour:03}.grib2 0'
         # subprocess.call(cmd, shell=True)
+    
+    with multiprocessing.pool.ThreadPool(4) as p:
+        p.map(thread_function, cmd_list_1)
+        p.map(thread_function, cmd_list_2)
+        p.map(thread_function, cmd_list_3)
 
+
+    for hour in ms.models[model]['times']:
         # delete temporary files and ensemble files that are too small
         # should use os.path to create paths not f-strings
         files = glob(date_tm.strftime(f'{folder}/*{hour:03}_allmbrs.grib2'))

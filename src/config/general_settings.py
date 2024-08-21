@@ -58,7 +58,7 @@ TM_STGS = {
 # Coordinate bounds. lower left corner = (lat0, lon0) upper right = (lat1, lon1)
 DM = {
     'lat0': 47,
-    'lat1': 61,
+    'lat1': 62,
     'lon0': -140,
     'lon1': -113,
 }
