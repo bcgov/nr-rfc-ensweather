@@ -75,3 +75,4 @@ MAX_DOWNLOADS = 10
 # List of all times used for the forecast. (6, 12 , 18...378, 384)
 ALL_TIMES = list(range(TM_STGS['min'], TM_STGS['max'], TM_STGS['space']))
 ALL_TIMES = [i for i in ALL_TIMES if i <= MAX_HOURS]
+#ALL_TIMES = list(range(0, 9, 3))
