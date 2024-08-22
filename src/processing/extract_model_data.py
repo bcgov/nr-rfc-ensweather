@@ -187,7 +187,7 @@ def ensemble_regrid(date_tm, model, stations):
         # cmd = f'{gs.WGRIB2} {regrid_path} -ncpu 1 -ens_processing {folder}ens_{model}_{hour:03}.grib2 0'
         # subprocess.call(cmd, shell=True)
     
-    with multiprocessing.pool.ThreadPool(4) as p:
+    with multiprocessing.pool.Pool(4) as p:
         p.map(thread_function, cmd_list_1)
         p.map(thread_function, cmd_list_2)
         p.map(thread_function, cmd_list_3)
