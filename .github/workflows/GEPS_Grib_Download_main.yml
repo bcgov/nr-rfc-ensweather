@@ -4,7 +4,7 @@ on:
   # cron schedules are in UTC
   # this job should run at 5.31 am pst, which translates to 1.31 pm.
   schedule:
-    - cron: '30 16 * * *'
+    - cron: '30 17 * * *'
   workflow_dispatch:
   repository_dispatch:
     types: run-geps-grib-download
@@ -61,7 +61,7 @@ jobs:
       name: download grib files
       shell: bash
       run: |
-        python src/extract_forecast_main.py
+        python src/extract_forecast_main.py geps
 
     # - id: debug
     #   name: debug and list files
