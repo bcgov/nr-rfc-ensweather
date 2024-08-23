@@ -1,0 +1,70 @@
+name: Download REPS Grib2 Files
+
+on:
+  # cron schedules are in UTC
+  # this job should run at 5.31 am pst, which translates to 1.31 pm.
+  schedule:
+    - cron: '30 16 * * *'
+  workflow_dispatch:
+  repository_dispatch:
+    types: run-reps-grib-download
+
+jobs:
+  dl_reps_grib2:
+    defaults:
+      run:
+        shell: bash
+    name: 'Download and Process CMC Grib2 Files'
+    runs-on: ubuntu-22.04
+    environment: RUN
+    env:
+      OBJ_STORE_BUCKET: ${{ secrets.OBJ_STORE_BUCKET }}
+      OBJ_STORE_SECRET: ${{ secrets.OBJ_STORE_SECRET }}
+      OBJ_STORE_USER: ${{ secrets.OBJ_STORE_USER }}
+      OBJ_STORE_HOST: ${{ secrets.OBJ_STORE_HOST }}
+      WGRIB_UTILITY: /usr/local/bin/wgrib2
+      ENS_WEATHER_DATA: ensemble_weather
+      ENS_DRIVEMAPPING: Z
+      ENS_NETWORK_DRIVE: \\sewer.dmz\Shared
+      RFC_ARTIFACTS_FOLDER: rfc_processing_artifacts
+      ENS_CLIMATE_OBS: resources
+      ENS_HOME: ''
+      WGRIB2EXEC: /usr/local/bin/wgrib2/wgrib2.exe
+
+    steps:
+    - uses: actions/checkout@v3
+      id: checkout
+      with:
+       fetch-depth: 0
+
+    - uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+
+    - id: install_dependencies
+      name: install python dependencies
+      shell: bash
+      run: |
+        sudo apt install python3-grib
+        pip install --upgrade pip
+        pip install -r requirements.txt
+
+    - id: get_wgrib_2
+      name: get the wgrib2 binary
+      shell: bash
+      run: |
+        curl -o wgrib2 -L https://github.com/franTarkenton/wgrib2-Cygwin-Build/releases/download/20230203-0000/wgrib2
+        chmod +x wgrib2
+        mv wgrib2 $WGRIB_UTILITY
+
+    - id: download_cmc_grib
+      name: download grib files
+      shell: bash
+      run: |
+        python src/extract_forecast_main.py reps
+
+    # - id: debug
+    #   name: debug and list files
+    #   shell: bash
+    #   run: |
+    #     ls -la
