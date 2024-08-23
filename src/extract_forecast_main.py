@@ -12,9 +12,9 @@ import time
 # run 3: 101 s (Pool instead of thread pool)
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Download and process ensemble data')
-    parser.add_argument('model', choices = ['reps','geps'], type=str, required=True)
+    parser.add_argument('model', choices = ['reps','geps'], type=str)
     args = parser.parse_args()
-    
+
     start = time.time()
     current_date = dt.now()
     latest_run = current_date.replace(hour=12)
