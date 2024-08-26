@@ -149,7 +149,10 @@ def ensemble_regrid(date_tm, model, stations):
 
         # concatenate all hourly variable files into one grid
         # create windows paths
-        inputFile_win = os.path.join(folder, f'*_PT{hour:03}H.grib2')
+        if model=='reps':
+            inputFile_win = os.path.join(folder, f'*_PT{hour:03}H.grib2')
+        else:   
+            inputFile_win = os.path.join(folder, f'*_P{hour:03}.grib2')
         outputFile_win = os.path.join(folder, f'cat_{model}_{hour:03}.grib2')
         # cat command is from cygwin, won't work with windows path delimeters need
         # to convert in this case windows path with forward slash delimeter
