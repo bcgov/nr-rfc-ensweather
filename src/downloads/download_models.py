@@ -152,21 +152,21 @@ def main(m, date_tm, times=None):
                     url_list.append({'model': m, 'pre': res[0],
                                     'fname': res[1]})
 
-        # start downloads in batches
-        LOGGER.debug(f"url_list: {url_list}")
-        LOGGER.debug("downloading starting...")
-        for idx, i in enumerate(range(0, len(url_list), MAX_DOWNLOADS)):
-            threads = [myThread(url, date_tm) for url in url_list[i:i+MAX_DOWNLOADS]]
-            for i in threads:
-                i.start()
-            for t in threads:
-                t.join()
-            if idx == 0:
-                download_folder_str = date_tm.strftime(f'{gs.DIR}/models/{m}/%Y%m%d%H/*')
-                download_folder = pathlib.Path(download_folder_str)
-                LOGGER.debug(f"download_folder: {download_folder}")
-                if not check_downloads(download_folder, MAX_DOWNLOADS):
-                    break
+    # start downloads in batches
+    LOGGER.debug(f"url_list: {url_list}")
+    LOGGER.debug("downloading starting...")
+    for idx, i in enumerate(range(0, len(url_list), MAX_DOWNLOADS)):
+        threads = [myThread(url, date_tm) for url in url_list[i:i+MAX_DOWNLOADS]]
+        for i in threads:
+            i.start()
+        for t in threads:
+            t.join()
+        if idx == 0:
+            download_folder_str = date_tm.strftime(f'{gs.DIR}/models/{m}/%Y%m%d%H/*')
+            download_folder = pathlib.Path(download_folder_str)
+            LOGGER.debug(f"download_folder: {download_folder}")
+            if not check_downloads(download_folder, MAX_DOWNLOADS):
+                break
 
         print(f'{m.upper()} download complete!')
 
