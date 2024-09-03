@@ -181,7 +181,7 @@ def ensemble_regrid(date_tm, model, stations):
         input_grib_path = os.path.join(f'{folder}', f'small_{model}_{hour:03}.grib2').replace(os.sep, '/')
         for n in range(num_stn_files):
             regrid_path = os.path.join(f'{folder}', f'regrid_{model}_{hour:03}_{n}.grib2').replace(os.sep, '/')
-            cmd = f'{gs.WGRIB2} {input_grib_path} -new_grid location {stn_list[n]} 0 {regrid_path}'
+            cmd = f'{gs.WGRIB2} {input_grib_path} -new_grid_interpolation neighbor -new_grid location {stn_list[n]} 0 {regrid_path}'
             cmd_list_3.append(cmd)
             #cmd = f'{gs.WGRIB2} {input_grib_path} -lon {stn_list[n]}'
             #p = subprocess.run(cmd, shell=True)
