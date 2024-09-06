@@ -70,7 +70,8 @@ if __name__ == '__main__':
     #download_models.main('reps', latest_run)
     #extract_model_data.main(latest_run, 'reps')
 
-    format_CMC_GRIB_TXT(latest_run)
+    if args.model=='geps':
+        format_CMC_GRIB_TXT(latest_run)
     end = time.time()
     time_taken = (end - start)
     print(f'total run time = {time_taken} s')
