@@ -50,7 +50,7 @@ BIAS_DAYS = 15
 # Forecast time range (6, 12 , 18...378, 384)
 TM_STGS = {
     'min': 0,
-    'max': 384,
+    'max': 390,
     'space': 3,
 }
 
@@ -75,4 +75,4 @@ MAX_DOWNLOADS = 10
 # List of all times used for the forecast. (6, 12 , 18...378, 384)
 ALL_TIMES = list(range(TM_STGS['min'], TM_STGS['max'], TM_STGS['space']))
 ALL_TIMES = [i for i in ALL_TIMES if i <= MAX_HOURS]
-#ALL_TIMES = list(range(0, 9, 3))
+#ALL_TIMES = list(range(0, 12, 3))
