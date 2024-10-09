@@ -36,7 +36,7 @@ models = {
         # number of days of forecasts expected to be found archived by the forecast creator. (Environment Canada in this case)
         'archived_days': 3,
         # list of times available for download (and needed for download)
-        'times': (list(range(0, 195, 3)) + list(range(198, 384, 6))),
+        'times': (list(range(0, 195, 3)) + list(range(198, 390, 6))),
         # download timeout (in seconds)
         'timeout': 30,
         # number of ensemble members included in model statistics
