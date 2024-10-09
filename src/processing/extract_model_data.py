@@ -238,7 +238,8 @@ def regrid_to_csv(date_tm, model, stations):
             for var in vs.metvars.keys():
                 output = df.pivot(columns="StnNum",index="Hour",values=f"{var}_{member+1}")
                 var_symbol = var[:1].upper()
-                output.to_csv(date_tm.strftime(f'{gs.DIR}/TXT/{model}/%Y%m%d%H/MB0{member+1}_{var_symbol}{n+1}.csv'), index=False, header=False)
+                membernum = member+1
+                output.to_csv(date_tm.strftime(f'{gs.DIR}/TXT/{model}/%Y%m%d%H/MB{membernum:02}_{var_symbol}{n+1}.csv'), index=False, header=False)
     send_to_objstore(txt_dir)
 
 
