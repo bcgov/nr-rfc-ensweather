@@ -44,7 +44,7 @@ def format_CMC_GRIB_TXT(date_tm):
         for row in range(len(data.index)):
             output_string = output_string + '1:0'
             for col in range(len(data.columns)):
-                output_string = output_string + ':lon=' + lons[N_i+col] + ',lat=' + lats[N_i+col] + ',val=' + str(data.iloc[row,col])
+                output_string = output_string + ':lon=' + lons[N_i+col] + ',lat=' + lats[N_i+col] + ',val=' + str(round(data.iloc[row,col],3))
             output_string = output_string + os.linesep
         
         if not os.path.isdir(output_dir):
