@@ -59,6 +59,8 @@ def get_stations():
     stations_path = os.path.join(gs.SRCDIR,'resources/stations.csv')
     stations = pd.read_csv(str(stations_path))
     LOGGER.debug(f"stations path: {stations_path}, {len(stations)}")
+    stations['latitude'] = round(stations['latitude'],3)
+    stations['longitude'] = round(stations['longitude'],3)
     return stations
 
 
