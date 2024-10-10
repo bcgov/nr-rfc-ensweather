@@ -63,7 +63,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     start = time.time()
-    current_date = dt.now()
+    current_date = dt.now() - timedelta(days=1)
     latest_run = current_date.replace(hour=12)
     download_models.main(args.model, latest_run)
     extract_model_data.main(latest_run, args.model)
